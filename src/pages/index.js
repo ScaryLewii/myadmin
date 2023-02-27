@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { db } from '@/firebase/config'
 import { getCollection, getDocById } from '@/firebase/utils'
@@ -19,6 +19,8 @@ export default function Home() {
   const [bookings, setBookings] = useState(null)
   const [staffs, setStaffs] = useState(null)
   const [selectedDate, setSelectedDate] = useState(new Date())
+
+  const calendarRef = useRef(null)
 
   const getBookingList = () => {
     const data = []
@@ -61,6 +63,13 @@ export default function Home() {
   // console.log(bookings)
   // console.log(staffs)
 
+  const handleCalendarDateChange = date => {
+    setSelectedDate( date )
+    const calendarApi = calendarRef.current.getApi()
+    console.log(calendarApi)
+    calendarApi.goToDate('2023-03-01')
+  }
+
   return (
     <section className="flex">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -68,7 +77,7 @@ export default function Home() {
           displayStaticWrapperAs="desktop"
           openTo="day"
           value={ selectedDate }
-          onChange={ newDate => setSelectedDate(newDate) }
+          onChange={ newDate => handleCalendarDateChange(newDate) }
           renderInput={ params => <TextField {...params} /> }
         />
       </LocalizationProvider>
@@ -78,24 +87,24 @@ export default function Home() {
           headerToolbar={{
             left: "",
             center: "title",
-            right: "prev,next today"
+            right: "today"
           }}
           plugins={[
             resourceDayGridPlugin,
             resourceTimeGridPlugin,
             interactionPlugin
           ]}
-          allDaySlot= { false }
-          slotMinTime= {"10:00:00"}
-          slotMaxTime= {"20:00:00"}
-          expandRows= { true }
+          allDaySlot={ false }
+          slotMinTime={"10:00:00"}
+          slotMaxTime={"20:00:00"}
+          expandRows={ true }
           initialView="resourceTimeGridDay"
-          timeGridEventMinHeight= { 40 }
           nowIndicator
           resources={ staffs }
           dayMaxEventRows
           editable
           droppable
+          ref={calendarRef}
           // initialEvents={ [
           // 	{"resourceId":"lzYkjcxmp6jWswt59iaU","title":"Repeating Event","start":"2023-01-09T16:00:00+00:00"},
           // ] }
