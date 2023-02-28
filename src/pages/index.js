@@ -15,6 +15,9 @@ import resourceDayGridPlugin from "@fullcalendar/resource-daygrid"
 import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid'
 import interactionPlugin from "@fullcalendar/interaction"
 
+import EventView from '@/components/calendar/event-view'
+import { addMinutes } from '@/ultilities/time'
+
 export default function Home() {
   const [bookings, setBookings] = useState(null)
   const [staffs, setStaffs] = useState(null)
@@ -29,6 +32,11 @@ export default function Home() {
       let bookingObj = {}
 
       bookingObj.id = r.id
+      bookingObj.resourceId = r.staff.id;
+      
+      const bookingTime = r.bookingTime;
+      bookingObj.start = new Date( bookingTime.seconds * 1000 );
+
       const client = getDocById( db, collectionType.client, r.client.id )
       const service = getDocById( db, collectionType.service, r.service.id )
       const staff = getDocById( db, collectionType.staff, r.staff.id )
@@ -37,6 +45,9 @@ export default function Home() {
         bookingObj.client = v[0]
         bookingObj.staff = v[1]
         bookingObj.service = v[2]
+
+        bookingObj.title = v[0].name
+        bookingObj.end = addMinutes( bookingTime, parseFloat(v[2].duration) ).toISOString();
 
         data.push( bookingObj )
       } ).then( () => setBookings( data ) )
@@ -66,8 +77,8 @@ export default function Home() {
   const handleCalendarDateChange = date => {
     setSelectedDate( date )
     const calendarApi = calendarRef.current.getApi()
-    console.log(calendarApi)
-    calendarApi.goToDate('2023-03-01')
+    // console.log(calendarApi)
+    calendarApi.gotoDate( new Date( date ) )
   }
 
   return (
@@ -109,7 +120,7 @@ export default function Home() {
           // 	{"resourceId":"lzYkjcxmp6jWswt59iaU","title":"Repeating Event","start":"2023-01-09T16:00:00+00:00"},
           // ] }
           events={ bookings }
-          // eventContent={ Record }
+          eventContent={ EventView }
           // eventClick={ handleClickEvent }
           // dateClick={ newBooking }
         />
