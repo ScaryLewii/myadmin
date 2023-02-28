@@ -121,6 +121,9 @@ export default function Home() {
           // ] }
           events={ bookings }
           eventContent={ EventView }
+          eventBackgroundColor="rgba(0,0,0,0)"
+          eventBorderColor="rgba(0,0,0,0)"
+          eventTextColor="#000"
           // eventClick={ handleClickEvent }
           // dateClick={ newBooking }
         />
