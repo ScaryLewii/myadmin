@@ -1,10 +1,19 @@
 const EventView = booking => {
-	console.log(booking)
+	console.log(booking.event.extendedProps.status)
+	const isComplete = booking.event.extendedProps.status === 1 ? true : false
+
 	return (
-		<div className="h-full p-1 rounded-sm border border-black border-l-4 border-l-teal-400">
+		<div className={`h-full p-1 rounded-sm border border-l-4
+				${ isComplete ? 'border-black bg-slate-200' : 'border-teal-400 bg-white' }
+			`}>
 			<div className="flex justify-between">
 				<span>{ booking.timeText }</span>
-				<span>{ `(${booking.event.extendedProps.service.price} £)` }</span>
+
+				<strong className={`text-white  rounded-sm border px-1
+							${ isComplete ? 'bg-black' : 'bg-teal-500' }
+						`}>
+					{ `${booking.event.extendedProps.service.price} £` }
+				</strong>
 			</div>
 			<div>
 				{/* <p>{ booking.event.extendedProps.service.name }</p> */}

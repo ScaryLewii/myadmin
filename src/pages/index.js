@@ -17,13 +17,40 @@ import interactionPlugin from "@fullcalendar/interaction"
 
 import EventView from '@/components/calendar/event-view'
 import { addMinutes } from '@/ultilities/time'
+import EventModalView from '@/components/calendar/event-modal-view'
 
 export default function Home() {
-  const [bookings, setBookings] = useState(null)
-  const [staffs, setStaffs] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [bookings, setBookings] = useState(null) // 0
+  const [staffs, setStaffs] = useState(null) // 1
+  const [selectedDate, setSelectedDate] = useState(new Date()) // 2
+
+  const [bookingOpen, setBookingOpen] = useState(false) // 3
+  const [loyaltyPoint, setLoyaltyPoint] = useState(0) // 4
+  const [selectedBooking, setSelectedBooking] = useState(null) // 5
 
   const calendarRef = useRef(null)
+
+  const handleEventClick = bookingEvent => {
+    // setBookingOpen(true)
+    // setSelectedBooking(bookingEvent)
+    console.log(bookingEvent.event)
+  }
+
+  const handleDateChange = value => {
+		setSelectedDate(value)
+	}
+
+  const handleClose = () => {
+		setBookingOpen( false )
+		// setNewBookingOpen( false )
+		// setTimeout(() => {
+		// 	setAlert(false)
+		// }, 3000);
+	}
+
+  const handleLoyaltyPoint = value => {
+    setLoyaltyPoint(value)
+  }
 
   const getBookingList = () => {
     const data = []
@@ -32,7 +59,8 @@ export default function Home() {
       let bookingObj = {}
 
       bookingObj.id = r.id
-      bookingObj.resourceId = r.staff.id;
+      bookingObj.resourceId = r.staff.id
+      bookingObj.status = r.status
       
       const bookingTime = r.bookingTime;
       bookingObj.start = new Date( bookingTime.seconds * 1000 );
@@ -116,18 +144,27 @@ export default function Home() {
           editable
           droppable
           ref={calendarRef}
-          // initialEvents={ [
-          // 	{"resourceId":"lzYkjcxmp6jWswt59iaU","title":"Repeating Event","start":"2023-01-09T16:00:00+00:00"},
-          // ] }
           events={ bookings }
           eventContent={ EventView }
           eventBackgroundColor="rgba(0,0,0,0)"
           eventBorderColor="rgba(0,0,0,0)"
           eventTextColor="#000"
-          // eventClick={ handleClickEvent }
+          eventClick={ handleEventClick }
           // dateClick={ newBooking }
         />
       </div>
+
+      {
+        selectedBooking && 
+        <EventModalView
+          bookingOpen
+          selectedBooking
+          handleClose
+          handleDateChange
+          handleLoyaltyPoint
+        />
+      }
+
       {/* {
         bookings && bookings.map( b =>
           <p key={ b.id }>{ b.service.name }</p>

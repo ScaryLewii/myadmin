@@ -18,6 +18,7 @@
     "@fullcalendar/resource-daygrid": "^6.1.4",
     "@fullcalendar/resource-timegrid": "^6.1.4",
     "@fullcalendar/timegrid": "^6.1.4",
+    "@mui/icons-material": "^5.11.11",
     "@mui/material": "^5.11.10",
     "@mui/x-date-pickers": "^5.0.20",
     "date-fns": "^2.29.3",
