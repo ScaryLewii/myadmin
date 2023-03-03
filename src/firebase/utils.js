@@ -1,18 +1,21 @@
-import { collection, doc, getDocs, getDoc } from "firebase/firestore"
+import { db } from "./config"
+import collectionType from "./types"
+import { getCollection, getDocsByDate, getDocById } from "./utils-common"
+import { addMinutes } from '@/ultilities/time'
 
-const getCollection = async (db, name) => {
-	const data = collection(db, name);
-	const dataSnapshot = await getDocs(data);
-	const results = dataSnapshot.docs.map(doc => ({...doc.data(), id:doc.id }));
-	return results;
+const getStaffList = async () => {
+	const data = []
+
+	await getCollection( db, collectionType.staff ).then( res => res.forEach( s => {
+		let staffObj = {}
+		staffObj.id = s.id
+		staffObj.title = s.name
+		staffObj.label = s.name
+	
+		data.push( staffObj )
+	} ) )
+	
+	return data
 }
 
-const getDocById = async (db, collection, id) => {
-	const docRef = doc(db, collection, id)
-	const docSnap = await getDoc(docRef)
-	const result = docSnap.data()
-
-	return result
-}
-
-export { getCollection, getDocById }
+export { getStaffList }

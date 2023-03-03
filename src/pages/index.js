@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { db } from '@/firebase/config'
-import { getCollection, getDocById } from '@/firebase/utils'
+import { getCollection, getDocById, getDocsByDate } from '@/firebase/utils-common'
 import collectionType from '@/firebase/types'
 
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { StaticDatePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import TextField from '@mui/material/TextField'
-import dayjs from 'dayjs'
 
 import FullCalendar from '@fullcalendar/react'
 import resourceDayGridPlugin from "@fullcalendar/resource-daygrid"
@@ -18,11 +17,12 @@ import interactionPlugin from "@fullcalendar/interaction"
 import EventView from '@/components/calendar/event-view'
 import { addMinutes } from '@/ultilities/time'
 import EventModalView from '@/components/calendar/event-modal-view'
+import { getStaffList } from '@/firebase/utils'
 
 export default function Home() {
-  const [bookings, setBookings] = useState(null) // 0
-  const [staffs, setStaffs] = useState(null) // 1
-  const [selectedDate, setSelectedDate] = useState(new Date()) // 2
+  const [staffs, setStaffs] = useState(null) // 0
+  const [selectedDate, setSelectedDate] = useState(new Date(new Date().setHours(0, 0, 0, 1))) // 1
+  const [bookings, setBookings] = useState(null) // 2
 
   const [bookingOpen, setBookingOpen] = useState(false) // 3
   const [loyaltyPoint, setLoyaltyPoint] = useState(0) // 4
@@ -31,9 +31,8 @@ export default function Home() {
   const calendarRef = useRef(null)
 
   const handleEventClick = bookingEvent => {
-    // setBookingOpen(true)
-    // setSelectedBooking(bookingEvent)
-    console.log(bookingEvent.event)
+    setBookingOpen(true)
+    setSelectedBooking(bookingEvent)
   }
 
   const handleDateChange = value => {
@@ -52,51 +51,49 @@ export default function Home() {
     setLoyaltyPoint(value)
   }
 
-  const getBookingList = () => {
+  const getBookingList = selectedDate => {
     const data = []
 
-    getCollection( db, collectionType.booking ).then( res => res.forEach( r => {
-      let bookingObj = {}
+    console.log(selectedDate)
 
-      bookingObj.id = r.id
-      bookingObj.resourceId = r.staff.id
-      bookingObj.status = r.status
-      
-      const bookingTime = r.bookingTime;
-      bookingObj.start = new Date( bookingTime.seconds * 1000 );
+    getDocsByDate(db, collectionType.booking, "bookingTime", ">", selectedDate)
+      .then(res => res.forEach(r => {
+        let bookingObj = {}
 
-      const client = getDocById( db, collectionType.client, r.client.id )
-      const service = getDocById( db, collectionType.service, r.service.id )
-      const staff = getDocById( db, collectionType.staff, r.staff.id )
+        bookingObj.id = r.id
+        bookingObj.resourceId = r.staff.id
+        bookingObj.status = r.status
+        
+        const bookingTime = r.bookingTime;
+        bookingObj.start = new Date( bookingTime.seconds * 1000 );
 
-      Promise.all( [ client, staff, service ] ).then( v => {
-        bookingObj.client = v[0]
-        bookingObj.staff = v[1]
-        bookingObj.service = v[2]
+        const client = getDocById( db, collectionType.client, r.client.id )
+        const service = getDocById( db, collectionType.service, r.service.id )
+        const staff = getDocById( db, collectionType.staff, r.staff.id )
 
-        bookingObj.title = v[0].name
-        bookingObj.end = addMinutes( bookingTime, parseFloat(v[2].duration) ).toISOString();
+        Promise.all( [ client, staff, service ] ).then( v => {
+          bookingObj.client = v[0]
+          bookingObj.staff = v[1]
+          bookingObj.service = v[2]
 
-        data.push( bookingObj )
-      } ).then( () => setBookings( data ) )
-    }) )
+          bookingObj.title = v[0].name
+          bookingObj.end = addMinutes( bookingTime, parseFloat(v[2].duration) ).toISOString();
+
+          data.push( bookingObj )
+        } ).then(() => setBookings( data ) )
+      }))
   }
 
-  const getStaffList = () => {
-    const data = []
-
-    getCollection( db, collectionType.staff ).then( res => res.forEach( s => {
-      let staffObj = {}
-      staffObj.id = s.id
-      staffObj.title = s.name
-
-      data.push( staffObj )
-    } ) ).then( () => setStaffs( data ) )
+  const getStaffs = () => {
+    getStaffList().then(data => setStaffs(data))
   }
 
   useEffect(() => {
-    getBookingList()
-    getStaffList()
+    getBookingList(selectedDate)
+  }, [selectedDate])
+
+  useEffect(() => {
+    getStaffs()
   }, [])
 
   // console.log(bookings)
@@ -157,11 +154,12 @@ export default function Home() {
       {
         selectedBooking && 
         <EventModalView
-          bookingOpen
-          selectedBooking
-          handleClose
-          handleDateChange
-          handleLoyaltyPoint
+          bookingOpen = {bookingOpen}
+          selectedBooking = {selectedBooking}
+          staffs = {staffs}
+          handleClose = {handleClose}
+          handleDateChange = {handleDateChange}
+          handleLoyaltyPoint = {handleLoyaltyPoint}
         />
       }
 

@@ -1,5 +1,4 @@
 const EventView = booking => {
-	console.log(booking.event.extendedProps.status)
 	const isComplete = booking.event.extendedProps.status === 1 ? true : false
 
 	return (
