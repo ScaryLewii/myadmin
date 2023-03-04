@@ -54,8 +54,6 @@ export default function Home() {
   const getBookingList = selectedDate => {
     const data = []
 
-    console.log(selectedDate)
-
     getDocsByDate(db, collectionType.booking, "bookingTime", ">", selectedDate)
       .then(res => res.forEach(r => {
         let bookingObj = {}
@@ -74,7 +72,9 @@ export default function Home() {
         Promise.all( [ client, staff, service ] ).then( v => {
           bookingObj.client = v[0]
           bookingObj.staff = v[1]
+          bookingObj.staff.id = r.staff.id
           bookingObj.service = v[2]
+          bookingObj.service.id = r.service.id
 
           bookingObj.title = v[0].name
           bookingObj.end = addMinutes( bookingTime, parseFloat(v[2].duration) ).toISOString();
@@ -123,7 +123,7 @@ export default function Home() {
           headerToolbar={{
             left: "",
             center: "title",
-            right: "today"
+            right: ""
           }}
           plugins={[
             resourceDayGridPlugin,

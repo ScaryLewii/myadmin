@@ -18,4 +18,21 @@ const getStaffList = async () => {
 	return data
 }
 
-export { getStaffList }
+const getServiceList = async () => {
+	const data = []
+
+	await getCollection( db, collectionType.service ).then( res => res.forEach( s => {
+		let serviceObj = {}
+		serviceObj.id = s.id
+		serviceObj.title = s.name
+		serviceObj.label = s.name + ' - ' + s.price + '£'
+		serviceObj.price = s.price
+		serviceObj.duration = s.duration
+
+		data.push( serviceObj )
+	} ) )
+
+	return data
+}
+
+export { getStaffList, getServiceList }
