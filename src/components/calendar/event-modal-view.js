@@ -4,18 +4,28 @@ import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { Button, Box, InputAdornment, TextField, Autocomplete } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { getCollection, getDocById, getDocsByDate } from '@/firebase/utils-common'
-import { db } from '@/firebase/config'
-import collectionType from '@/firebase/types'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { DatePicker } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import dayjs from 'dayjs';
 
-import { getServiceList, getStaffList } from '@/firebase/utils';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+
+import { Button, Box, InputAdornment, TextField, Autocomplete, IconButton } from '@mui/material';
+import { useEffect, useState } from 'react';
+import TimeSlot from '@/helpers/time-slot';
+
+import { getServiceList, getStaffList } from '@/firebase/functions';
+import { uuidv4 } from '@firebase/util';
 
 const EventModalView = ({ bookingOpen, selectedBooking, handleClose, handleDateChange, handleLoyaltyPoint, deleteBooking, completeBooking }) => {
 	const [staffs, setStaffs] = useState(null) // 0
 	const [services, setServices] = useState(null) // 0
 
+	const disabled = selectedBooking.event.extendedProps.status === 1 ? true : false
 	
 	useEffect(() => {
 		const getStaffs = () => {
@@ -33,12 +43,10 @@ const EventModalView = ({ bookingOpen, selectedBooking, handleClose, handleDateC
 		getServices()
 	}, [])
 
-	// staffs && console.log(staffs.filter(s => s.id === selectedBooking.event.extendedProps.staff.id))
-	// console.log(dayjs(selectedBooking.event.start).format("DD-MM-YYYY"))
 	return (
 		<Dialog open={bookingOpen} onClose={handleClose} className="text-sm">
-			<Box className="pb-2">
-				<h2 className="px-4 py-2 mb-4 text-base text-white font-semibold bg-teal-500">
+			<Box>
+				<h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-teal-500">
 					{selectedBooking.event.title}
 				</h2>
 
@@ -47,10 +55,13 @@ const EventModalView = ({ bookingOpen, selectedBooking, handleClose, handleDateC
 						<MailOutlineIcon className="mr-1" />
 						{selectedBooking.event.extendedProps.client.email}
 					</div>
-					<div>
-						<PhoneInTalkIcon className="mr-1" />
-						{selectedBooking.event.extendedProps.client.phone ?? "(unknown)"}
-					</div>
+					{
+						selectedBooking.event.extendedProps.client.phone &&
+						<div>
+							<PhoneInTalkIcon className="mr-1" />
+							{selectedBooking.event.extendedProps.client.phone}
+						</div>
+					}
 				</div>
 
 				{
@@ -63,7 +74,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, handleClose, handleDateC
 							sx={{ width: "100%" }}
 							onChange={(e, v) => console.log(v)}
 							value={staffs.filter(s => s.id === selectedBooking.event.extendedProps.staff.id)[0]}
-							disabled={selectedBooking.event.extendedProps.status}
+							disabled={disabled}
 							renderInput={(params) => <TextField {...params} label="Staff" />}
 						/>
 					</div>
@@ -79,18 +90,84 @@ const EventModalView = ({ bookingOpen, selectedBooking, handleClose, handleDateC
 							sx={{ width: "100%" }}
 							onChange={(e, v) => console.log(v)}
 							value={services.filter(s => s.id === selectedBooking.event.extendedProps.service.id)[0]}
-							disabled={selectedBooking.event.extendedProps.status}
+							disabled={disabled}
 							renderInput={(params) => <TextField {...params} label="Service" />}
 						/>
 					</div>
 				}
 
-				<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
-					{/* <DatePicker
-						value={dayjs(selectedBooking.event.start).format("YYYY-MM-DD")}
-						onChange={v => handleDateChange(v)}
-						renderInput={(params) => <TextField {...params} />}
-						/> */}
+				<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-teal-400">
+					<LocalizationProvider dateAdapter={AdapterDayjs}>
+						<DatePicker className=" border-r w-1/2"
+							displayStaticWrapperAs="desktop"
+							openTo="day"
+							value={ dayjs(selectedBooking.event.start).format('DD-MM-YYYY') }
+							disabled={disabled}
+							onChange={ newDate => handleDateChange(newDate) }
+							renderInput={ params => <TextField {...params} label="Date" /> }
+						/>
+					</LocalizationProvider>
+
+					<div className="w-1/2">
+						<FormControl fullWidth>
+							<InputLabel id="time-select-label">Time</InputLabel>
+							<Select
+								labelId="time-select-label"
+								id="time-select"
+								label="Time"
+								disabled={disabled}
+								value={ dayjs(selectedBooking.event.start).format('HH:mm') }
+							>
+								{
+									TimeSlot.map(t => <MenuItem key={uuidv4()} value={t}>{t}</MenuItem>)
+								}
+							</Select>
+						</FormControl>
+					</div>
+				</div>
+
+				<div className="flex justify-between items-center gap-10 mt-8 px-2 border-l-4 border-teal-400">
+					<label className="text-base w-1/2">Loyalty Points:</label>
+					<di className="w-1/2 flex justify-between">
+						<TextField 
+							sx={{ width: '7ch' }} variant="standard" disabled
+							value={selectedBooking.event.extendedProps.service.price}
+							InputProps={{
+								startAdornment: <InputAdornment position="start">+</InputAdornment>,
+							}} />
+
+						<TextField 
+							sx={{ width: '7ch' }} variant="standard" type="number"
+							InputProps={{
+								startAdornment: <InputAdornment position="start">-</InputAdornment>,
+							}}
+							value="0"
+							onChange={ e => setUsePoint(e.target.value) }
+							disabled={disabled}
+							inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} />
+					</di>
+				</div>
+
+				<div className="flex justify-between mt-8 bg-slate-900">
+					<div className="px-1 py-1 bg-gray-700 hover:bg-gray-800">
+						<IconButton className="text-white">
+							<DeleteIcon />
+						</IconButton>
+					</div>
+
+					{
+						disabled &&
+						<Button variant="outline" className="text-white bg-gray-700 hover:bg-gray-700 rounded-none cursor-not-allowed">
+							Completed
+						</Button>
+					}
+					
+					{
+						!disabled &&
+						<Button variant="outline" className="text-white bg-teal-500 rounded-none hover:bg-teal-600">
+							Complete
+						</Button>
+					}
 				</div>
 			</Box>
 		</Dialog>

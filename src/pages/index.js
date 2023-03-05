@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { db } from '@/firebase/config'
-import { getCollection, getDocById, getDocsByDate } from '@/firebase/utils-common'
+import { getCollection, getDocById, getDocsByDate } from '@/firebase/utils'
 import collectionType from '@/firebase/types'
 
 import { LocalizationProvider } from '@mui/x-date-pickers'
@@ -17,7 +17,7 @@ import interactionPlugin from "@fullcalendar/interaction"
 import EventView from '@/components/calendar/event-view'
 import { addMinutes } from '@/ultilities/time'
 import EventModalView from '@/components/calendar/event-modal-view'
-import { getStaffList } from '@/firebase/utils'
+import { getStaffList } from '@/firebase/functions'
 
 export default function Home() {
   const [staffs, setStaffs] = useState(null) // 0
@@ -141,6 +141,18 @@ export default function Home() {
           editable
           droppable
           ref={calendarRef}
+          slotLabelFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false,
+            hour12: false
+          }}
+          eventTimeFormat= {{
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false,
+            hour12: false
+          }}
           events={ bookings }
           eventContent={ EventView }
           eventBackgroundColor="rgba(0,0,0,0)"

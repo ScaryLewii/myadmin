@@ -1,38 +1,25 @@
-import { db } from "./config"
-import collectionType from "./types"
-import { getCollection, getDocsByDate, getDocById } from "./utils-common"
-import { addMinutes } from '@/ultilities/time'
+import { collection, doc, getDocs, getDoc, Timestamp, query, where } from "firebase/firestore"
 
-const getStaffList = async () => {
-	const data = []
-
-	await getCollection( db, collectionType.staff ).then( res => res.forEach( s => {
-		let staffObj = {}
-		staffObj.id = s.id
-		staffObj.title = s.name
-		staffObj.label = s.name
+const getCollection = async (db, name) => {
+	const data = collection(db, name);
+	const dataSnapshot = await getDocs(data);
 	
-		data.push( staffObj )
-	} ) )
-	
-	return data
+	return dataSnapshot.docs.map(doc => ({...doc.data(), id:doc.id }));
 }
 
-const getServiceList = async () => {
-	const data = []
+const getDocById = async (db, collection, id) => {
+	const docRef = doc(db, collection, id)
+	const docSnap = await getDoc(docRef)
 
-	await getCollection( db, collectionType.service ).then( res => res.forEach( s => {
-		let serviceObj = {}
-		serviceObj.id = s.id
-		serviceObj.title = s.name
-		serviceObj.label = s.name + ' - ' + s.price + '£'
-		serviceObj.price = s.price
-		serviceObj.duration = s.duration
-
-		data.push( serviceObj )
-	} ) )
-
-	return data
+	return docSnap.data()
 }
 
-export { getStaffList, getServiceList }
+const getDocsByDate = async (db, collectionName, entityDateName, condition, value) => {
+	const dateToQuery = Timestamp.fromDate(new Date(value))
+	const q = query(collection(db, collectionName), where(entityDateName, condition, dateToQuery))
+	const querySnapShot = await getDocs(q)
+
+	return querySnapShot.docs.map(doc => ({...doc.data(), id: doc.id}))
+}
+
+export { getCollection, getDocById, getDocsByDate }
