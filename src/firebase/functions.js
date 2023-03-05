@@ -40,7 +40,7 @@ const getClientList = async () => {
 		data.push({
 			id: c.id,
 			title: c.name,
-			label: c.name,
+			label: c.name + ' (' + c.email + ')',
 			email: c.email,
 			phone: c.phone
 		})

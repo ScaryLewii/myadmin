@@ -44,7 +44,6 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, handleClose, handleDa
 					staffs && 
 					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
 						<Autocomplete
-							disablePortal
 							id="staff-selector"
 							options={[...Object.values(staffs)]}
 							sx={{ width: "100%" }}
@@ -59,7 +58,6 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, handleClose, handleDa
 					services &&
 					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
 						<Autocomplete
-							disablePortal
 							id="service-selector"
 							options={[...Object.values(services)]}
 							sx={{ width: "100%" }}
