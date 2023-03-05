@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, getDoc, Timestamp, query, where } from "firebase/firestore"
+import { collection, doc, getDocs, getDoc, Timestamp, query, where, updateDoc, addDoc } from "firebase/firestore"
 
 const getCollection = async (db, name) => {
 	const data = collection(db, name);
@@ -22,4 +22,20 @@ const getDocsByDate = async (db, collectionName, entityDateName, condition, valu
 	return querySnapShot.docs.map(doc => ({...doc.data(), id: doc.id}))
 }
 
-export { getCollection, getDocById, getDocsByDate }
+const updateDocument = async(db, collectionName, collectionId, data) => {
+	const docRef = doc(db, collectionName, collectionId);
+
+	data ??= {
+		updated: true
+	}
+
+	return updateDoc(docRef, data)
+}
+
+const createDocument = async (db, collectionName, data) => {
+	const docRef = await addDoc(collection(db, collectionName), data);
+
+	return docRef
+}
+
+export { getCollection, getDocById, getDocsByDate, updateDocument, createDocument }

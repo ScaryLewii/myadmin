@@ -18,6 +18,7 @@ import EventView from '@/components/calendar/event-view'
 import { addMinutes } from '@/ultilities/time'
 import EventModalView from '@/components/calendar/event-modal-view'
 import { getStaffList } from '@/firebase/functions'
+import NewEventModalView from '@/components/calendar/new-event-modal-view'
 
 export default function Home() {
   const [staffs, setStaffs] = useState(null) // 0
@@ -28,11 +29,19 @@ export default function Home() {
   const [loyaltyPoint, setLoyaltyPoint] = useState(0) // 4
   const [selectedBooking, setSelectedBooking] = useState(null) // 5
 
+  const [newBookingOpen, setNewBookingOpen] = useState(false) // 6
+  const [selectedSlot, setSelectedSlot] = useState(null) // 6
+
   const calendarRef = useRef(null)
 
   const handleEventClick = bookingEvent => {
     setBookingOpen(true)
     setSelectedBooking(bookingEvent)
+  }
+
+  const handleDateClick = slotInfo => {
+    setNewBookingOpen(true)
+    setSelectedSlot(slotInfo)
   }
 
   const handleDateChange = value => {
@@ -159,7 +168,7 @@ export default function Home() {
           eventBorderColor="rgba(0,0,0,0)"
           eventTextColor="#000"
           eventClick={ handleEventClick }
-          // dateClick={ newBooking }
+          dateClick={ handleDateClick }
         />
       </div>
 
@@ -168,18 +177,23 @@ export default function Home() {
         <EventModalView
           bookingOpen = {bookingOpen}
           selectedBooking = {selectedBooking}
-          staffs = {staffs}
           handleClose = {handleClose}
           handleDateChange = {handleDateChange}
           handleLoyaltyPoint = {handleLoyaltyPoint}
         />
       }
 
-      {/* {
-        bookings && bookings.map( b =>
-          <p key={ b.id }>{ b.service.name }</p>
-        )
-      } */}
+
+
+      {
+        selectedSlot &&
+        <NewEventModalView
+          newBookingOpen = {newBookingOpen}
+          selectedSlot = {selectedSlot}
+          handleClose = {handleClose}
+          handleDateChange = {handleDateChange}
+        />
+      }
     </section>
   )
 }
