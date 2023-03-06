@@ -32,11 +32,11 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 	return (
 		<Dialog open={bookingOpen} onClose={handleClose} className="text-sm">
 			<Box>
-				<h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-teal-500">
+				<h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-primary">
 					{selectedBooking.event.title}
 				</h2>
 
-				<div className="flex justify-between mb-4 px-2 gap-10 border-l-4 border-teal-400">
+				<div className="flex justify-between mb-4 px-2 gap-10 border-l-4 border-primary">
 					<div>
 						<MailOutlineIcon className="mr-1" />
 						{selectedBooking.event.extendedProps.client.email}
@@ -52,7 +52,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 
 				{
 					staffs && 
-					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
+					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 						<Autocomplete
 							id="staff-selector"
 							options={[...Object.values(staffs)]}
@@ -67,7 +67,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 
 				{
 					services &&
-					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
+					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 						<Autocomplete
 							id="service-selector"
 							options={[...Object.values(services)]}
@@ -80,7 +80,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 					</div>
 				}
 
-				<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-teal-400">
+				<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
 					<LocalizationProvider dateAdapter={AdapterDayjs}>
 						<DatePicker className=" border-r w-1/2"
 							displayStaticWrapperAs="desktop"
@@ -110,7 +110,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 					</div>
 				</div>
 
-				<div className="flex justify-between items-center gap-10 mt-8 px-2 border-l-4 border-teal-400">
+				<div className="flex justify-between items-center gap-10 mt-8 px-2 border-l-4 border-primary">
 					<label className="text-base w-1/2">Loyalty Points:</label>
 					<di className="w-1/2 flex justify-between">
 						<TextField 
@@ -132,23 +132,23 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 					</di>
 				</div>
 
-				<div className="flex justify-between mt-8 bg-slate-900">
+				<div className="flex justify-between mt-8 bg-slate-800">
 					<div className="px-1 py-1 bg-gray-700 hover:bg-gray-800">
-						<IconButton className="text-white">
+						<IconButton className="text-white w-full">
 							<DeleteIcon />
 						</IconButton>
 					</div>
 
 					{
 						disabled &&
-						<Button variant="outline" className="text-white bg-gray-700 hover:bg-gray-700 rounded-none cursor-not-allowed">
+						<Button variant="outline" className="w-full text-white bg-gray-500 hover:bg-gray-500 rounded-none cursor-not-allowed">
 							Completed
 						</Button>
 					}
 					
 					{
 						!disabled &&
-						<Button variant="outline" className="text-white bg-teal-500 rounded-none hover:bg-teal-600">
+						<Button variant="outline" className="w-full text-white bg-primary rounded-none hover:bg-primary-hover">
 							Complete
 						</Button>
 					}

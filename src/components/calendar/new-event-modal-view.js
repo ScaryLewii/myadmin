@@ -10,24 +10,36 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 
-import { Button, Box, TextField, Autocomplete } from '@mui/material';
+import { Button, Box, TextField, Autocomplete, Tabs, Tab } from '@mui/material';
 import TimeSlot from '@/helpers/time-slot';
 
 import { uuidv4 } from '@firebase/util';
+import { useState } from 'react';
+import TabPanel from '../layout/tab';
 
 const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, clients, staffs, services }) => {
+	const [tabIndex, setTabIndex] = useState(0)
+
 	const handleClose = () => {
 		setNewBookingOpen(false)
+	}
+
+	const handleTabSwitch = (e, newIndex) => {
+		setTabIndex(newIndex)
 	}
 
 	return (
 		<Dialog open={newBookingOpen} onClose={handleClose} className="text-sm">
 			<Box>
-				<h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-teal-500">New Booking</h2>
-
+				<Tabs variant="fullWidth" value={tabIndex} onChange={handleTabSwitch} centered>
+					<Tab label="New Booking" />
+					<Tab label="Block Hour" />
+				</Tabs>
+				{/* <h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-primary">New Booking</h2> */}
+				<TabPanel value={tabIndex} index={0}>
 				{
 					clients && 
-					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
+					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 						<Autocomplete
 							id="staff-selector"
 							options={[...Object.values(clients)]}
@@ -49,7 +61,7 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 
 				{
 					staffs && 
-					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
+					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 						<Autocomplete
 							id="staff-selector"
 							options={[...Object.values(staffs)]}
@@ -63,7 +75,7 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 
 				{
 					services &&
-					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
+					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 						<Autocomplete
 							id="service-selector"
 							options={[...Object.values(services)]}
@@ -81,7 +93,7 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 					</div>
 				}
 
-				<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-teal-400">
+				<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
 					<LocalizationProvider dateAdapter={AdapterDayjs}>
 						<DatePicker className=" border-r w-1/2"
 							displayStaticWrapperAs="desktop"
@@ -110,10 +122,14 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 				</div>
 
 				<div className="flex justify-between mt-8 bg-slate-900">
-					<Button variant="outline" className="text-white bg-teal-500 rounded-none hover:bg-teal-600 w-full">
+					<Button variant="outline" className="text-white bg-primary rounded-none hover:bg-primary-hover w-full">
 						Book
 					</Button>
 				</div>
+				</TabPanel>
+
+				<TabPanel value={tabIndex} index={1}>
+				</TabPanel>
 			</Box>
 		</Dialog>
 	)

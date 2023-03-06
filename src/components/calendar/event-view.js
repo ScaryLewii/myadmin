@@ -3,13 +3,13 @@ const EventView = booking => {
 
 	return (
 		<div className={`h-full p-1 rounded-sm border border-l-4
-				${ isComplete ? 'border-black bg-slate-200' : 'border-teal-400 bg-white' }
+				${ isComplete ? 'border-black bg-slate-200' : 'border-primary bg-white' }
 			`}>
 			<div className="flex justify-between">
 				<span>{ booking.timeText }</span>
 
 				<strong className={`text-white  rounded-sm border px-1
-							${ isComplete ? 'bg-black' : 'bg-teal-500' }
+							${ isComplete ? 'bg-black' : 'bg-primary' }
 						`}>
 					{ `${booking.event.extendedProps.service.price} £` }
 				</strong>
