@@ -11,34 +11,41 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 
 import { Button, Box, TextField, Autocomplete } from '@mui/material';
-import { useEffect, useState } from 'react';
 import TimeSlot from '@/helpers/time-slot';
 
-import { getServiceList, getStaffList } from '@/firebase/functions';
 import { uuidv4 } from '@firebase/util';
 
-const NewEventModalView = ({ newBookingOpen, selectedSlot, handleClose, handleDateChange }) => {
-	const [staffs, setStaffs] = useState(null) // 0
-	const [services, setServices] = useState(null) // 1
-
-	useEffect(() => {
-		const getStaffs = () => {
-			getStaffList().then(list => setStaffs(list))
-		}
-		getStaffs()
-	}, [])
-
-	useEffect(() => {
-		const getServices = () => {
-			getServiceList().then(list => setServices(list))
-		}
-		getServices()
-	}, [])
+const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, clients, staffs, services }) => {
+	const handleClose = () => {
+		setNewBookingOpen(false)
+	}
 
 	return (
 		<Dialog open={newBookingOpen} onClose={handleClose} className="text-sm">
 			<Box>
 				<h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-teal-500">New Booking</h2>
+
+				{
+					clients && 
+					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-teal-400">
+						<Autocomplete
+							id="staff-selector"
+							options={[...Object.values(clients)]}
+							sx={{ width: "100%" }}
+							onChange={(e, v) => console.log(v)}
+							getOptionLabel={(option) => option.title}
+							renderOption={(props, option, { selected }) => (
+								<li {...props}>
+									<div>
+										<h6>{option.title}</h6>
+										<span className="text-xs text-gray-400">{option.email}</span>
+									</div>
+								</li>
+							)}
+							renderInput={(params) => <TextField {...params} label="Client" />}
+						/>
+					</div>
+				}
 
 				{
 					staffs && 
@@ -62,6 +69,13 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, handleClose, handleDa
 							options={[...Object.values(services)]}
 							sx={{ width: "100%" }}
 							onChange={(e, v) => console.log(v)}
+							getOptionLabel={(option) => option.title}
+							renderOption={(props, option) => (
+								<li {...props} >
+									<h6>{option.title}</h6>
+									<span className="text-xs text-gray-400 ml-3">({option.price} £)</span>
+								</li>
+							)}
 							renderInput={(params) => <TextField {...params} label="Service" />}
 						/>
 					</div>

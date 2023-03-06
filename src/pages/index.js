@@ -17,19 +17,18 @@ import interactionPlugin from "@fullcalendar/interaction"
 import EventView from '@/components/calendar/event-view'
 import { addMinutes } from '@/ultilities/time'
 import EventModalView from '@/components/calendar/event-modal-view'
-import { getStaffList } from '@/firebase/functions'
+import { getClientList, getServiceList, getStaffList } from '@/firebase/functions'
 import NewEventModalView from '@/components/calendar/new-event-modal-view'
 
-export default function Home() {
-  const [staffs, setStaffs] = useState(null) // 0
-  const [selectedDate, setSelectedDate] = useState(new Date(new Date().setHours(0, 0, 0, 1))) // 1
-  const [bookings, setBookings] = useState(null) // 2
+export default function Home({ clients, staffs, services }) {
+  const [selectedDate, setSelectedDate] = useState(new Date(new Date().setHours(0, 0, 0, 1))) // 0
+  const [bookings, setBookings] = useState(null) // 1
 
-  const [bookingOpen, setBookingOpen] = useState(false) // 3
-  const [loyaltyPoint, setLoyaltyPoint] = useState(0) // 4
-  const [selectedBooking, setSelectedBooking] = useState(null) // 5
+  const [bookingOpen, setBookingOpen] = useState(false) // 2
+  const [loyaltyPoint, setLoyaltyPoint] = useState(0) // 3
+  const [selectedBooking, setSelectedBooking] = useState(null) // 4
 
-  const [newBookingOpen, setNewBookingOpen] = useState(false) // 6
+  const [newBookingOpen, setNewBookingOpen] = useState(false) // 5
   const [selectedSlot, setSelectedSlot] = useState(null) // 6
 
   const calendarRef = useRef(null)
@@ -93,20 +92,9 @@ export default function Home() {
       }))
   }
 
-  const getStaffs = () => {
-    getStaffList().then(data => setStaffs(data))
-  }
-
   useEffect(() => {
     getBookingList(selectedDate)
   }, [selectedDate])
-
-  useEffect(() => {
-    getStaffs()
-  }, [])
-
-  // console.log(bookings)
-  // console.log(staffs)
 
   const handleCalendarDateChange = date => {
     setSelectedDate( date )
@@ -176,24 +164,38 @@ export default function Home() {
         selectedBooking && 
         <EventModalView
           bookingOpen = {bookingOpen}
+          setBookingOpen = {setBookingOpen}
           selectedBooking = {selectedBooking}
-          handleClose = {handleClose}
-          handleDateChange = {handleDateChange}
-          handleLoyaltyPoint = {handleLoyaltyPoint}
+          staffs = {staffs}
+          services = {services}
         />
       }
-
-
 
       {
         selectedSlot &&
         <NewEventModalView
           newBookingOpen = {newBookingOpen}
+          setNewBookingOpen = {setNewBookingOpen}
           selectedSlot = {selectedSlot}
-          handleClose = {handleClose}
-          handleDateChange = {handleDateChange}
+          clients = {clients}
+          staffs = {staffs}
+          services = {services}
         />
       }
     </section>
   )
+}
+
+export async function getServerSideProps() {
+  const clients = await getClientList()
+  const staffs = await getStaffList()
+  const services = await getServiceList()
+
+  return {
+    props: {
+      clients,
+      staffs,
+      services
+    }
+  }
 }

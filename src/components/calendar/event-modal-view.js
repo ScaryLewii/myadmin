@@ -21,27 +21,13 @@ import TimeSlot from '@/helpers/time-slot';
 import { getServiceList, getStaffList } from '@/firebase/functions';
 import { uuidv4 } from '@firebase/util';
 
-const EventModalView = ({ bookingOpen, selectedBooking, handleClose, handleDateChange, handleLoyaltyPoint, deleteBooking, completeBooking }) => {
-	const [staffs, setStaffs] = useState(null) // 0
-	const [services, setServices] = useState(null) // 0
+const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, services }) => {
+	//handleDateChange, handleLoyaltyPoint, deleteBooking, completeBooking
+	const handleClose = () => {
+		setBookingOpen(false)
+	}
 
 	const disabled = selectedBooking.event.extendedProps.status === 1 ? true : false
-	
-	useEffect(() => {
-		const getStaffs = () => {
-			getStaffList().then(list => setStaffs(list))
-		}
-
-		getStaffs()
-	}, [])
-
-	useEffect(() => {
-		const getServices = () => {
-			getServiceList().then(list => setServices(list))
-		}
-		
-		getServices()
-	}, [])
 
 	return (
 		<Dialog open={bookingOpen} onClose={handleClose} className="text-sm">

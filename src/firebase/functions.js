@@ -24,7 +24,7 @@ const getServiceList = async () => {
 		data.push({
 			id: s.id,
 			title: s.name,
-			label: s.name + ' - ' + s.price + '£',
+			label: s.name,
 			price: s.price,
 			duration: s.duration
 		})
@@ -40,11 +40,13 @@ const getClientList = async () => {
 		data.push({
 			id: c.id,
 			title: c.name,
-			label: c.name + ' (' + c.email + ')',
-			email: c.email,
-			phone: c.phone
+			label: c.name,
+			email: c.email ?? null,
+			phone: c.phone ?? null
 		})
 	} ))
+
+	return data
 }
 
 export { getStaffList, getServiceList, getClientList }
