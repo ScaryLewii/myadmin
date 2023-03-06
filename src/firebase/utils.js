@@ -1,10 +1,10 @@
-import { collection, doc, getDocs, getDoc, Timestamp, query, where, updateDoc, addDoc } from "firebase/firestore"
+import { collection, doc, getDocs, getDoc, Timestamp, query, where, updateDoc, addDoc, orderBy } from "firebase/firestore"
 
-const getCollection = async (db, name) => {
-	const data = collection(db, name);
-	const dataSnapshot = await getDocs(data);
+const getCollection = async (db, name, field) => {
+	const q = query(collection(db, name), orderBy(field, "asc"))
+	const querySnapshot = await getDocs(q);
 	
-	return dataSnapshot.docs.map(doc => ({...doc.data(), id:doc.id }));
+	return querySnapshot.docs.map(doc => ({...doc.data(), id:doc.id }));
 }
 
 const getDocById = async (db, collection, id) => {

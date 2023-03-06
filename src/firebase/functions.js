@@ -6,7 +6,7 @@ import { addMinutes } from '@/ultilities/time'
 const getStaffList = async () => {
 	const data = []
 
-	await getCollection( db, collectionType.staff ).then( res => res.forEach( s => {
+	await getCollection( db, collectionType.staff, "name" ).then( res => res.forEach( s => {
 		data.push({
 			id: s.id,
 			title: s.name,
@@ -20,7 +20,7 @@ const getStaffList = async () => {
 const getServiceList = async () => {
 	const data = []
 
-	await getCollection( db, collectionType.service ).then( res => res.forEach( s => {
+	await getCollection( db, collectionType.service, "name" ).then( res => res.forEach( s => {
 		data.push({
 			id: s.id,
 			title: s.name,
@@ -36,7 +36,7 @@ const getServiceList = async () => {
 const getClientList = async () => {
 	const data = []
 
-	await getCollection( db, collectionType.client ).then( res => res.forEach( c => {
+	await getCollection( db, collectionType.client, "name" ).then( res => res.forEach( c => {
 		data.push({
 			id: c.id,
 			title: c.name,
