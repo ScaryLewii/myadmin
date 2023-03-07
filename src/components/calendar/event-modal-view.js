@@ -88,7 +88,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 							value={ dayjs(selectedBooking.event.start).format('DD-MM-YYYY') }
 							disabled={disabled}
 							onChange={ newDate => handleDateChange(newDate) }
-							renderInput={ params => <TextField {...params} label="Date" /> }
+							renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
 						/>
 					</LocalizationProvider>
 

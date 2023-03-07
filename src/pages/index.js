@@ -25,11 +25,10 @@ export default function Home({ clients, staffs, services }) {
   const [bookings, setBookings] = useState(null) // 1
 
   const [bookingOpen, setBookingOpen] = useState(false) // 2
-  const [loyaltyPoint, setLoyaltyPoint] = useState(0) // 3
-  const [selectedBooking, setSelectedBooking] = useState(null) // 4
+  const [selectedBooking, setSelectedBooking] = useState(null) // 3
 
-  const [newBookingOpen, setNewBookingOpen] = useState(false) // 5
-  const [selectedSlot, setSelectedSlot] = useState(null) // 6
+  const [newBookingOpen, setNewBookingOpen] = useState(false) // 4
+  const [selectedSlot, setSelectedSlot] = useState(null) // 5
 
   const calendarRef = useRef(null)
 
@@ -44,20 +43,8 @@ export default function Home({ clients, staffs, services }) {
   }
 
   const handleDateChange = value => {
-		setSelectedDate(value)
+		// setSelectedDate(value)
 	}
-
-  const handleClose = () => {
-		setBookingOpen( false )
-		// setNewBookingOpen( false )
-		// setTimeout(() => {
-		// 	setAlert(false)
-		// }, 3000);
-	}
-
-  const handleLoyaltyPoint = value => {
-    setLoyaltyPoint(value)
-  }
 
   const getBookingList = selectedDate => {
     const data = []

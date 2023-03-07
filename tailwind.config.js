@@ -14,6 +14,9 @@ module.exports = {
         "primary": "#1976d2",
         "primary-hover": "#0a69c6"
       },
+      minWidth: {
+        '400': '400px',
+      }
     },
   },
   plugins: [],
