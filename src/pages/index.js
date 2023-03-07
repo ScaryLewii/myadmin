@@ -120,7 +120,7 @@ export default function Home({ clients, staffs, services }) {
       </div>
 
       {
-        selectedBooking && 
+        bookingOpen && 
         <EventModalView
           bookingOpen = {bookingOpen}
           setBookingOpen = {setBookingOpen}
@@ -131,7 +131,7 @@ export default function Home({ clients, staffs, services }) {
       }
 
       {
-        selectedSlot &&
+        newBookingOpen &&
         <NewEventModalView
           newBookingOpen = {newBookingOpen}
           setNewBookingOpen = {setNewBookingOpen}

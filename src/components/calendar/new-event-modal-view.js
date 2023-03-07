@@ -25,9 +25,12 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 	const [bookingService, setBookingService] = useState(null)
 	const [bookingStaff, setBookingStaff] = useState(staffs.filter(s => s.id === selectedSlot.resource.id)[0].id)
 	const [bookingDate, setBookingDate] = useState(dayjs(selectedSlot.date).format('DD-MM-YYYY'))
-	const [bookingTime, setBookingTime] = useState(dayjs(selectedSlot.date).format('HH:00'))
-	const [blockStartTime, setBlockStartTime] = useState(dayjs(selectedSlot.date).format('HH:00'))
-	const [blockEndTime, setBlockEndTime] = useState(dayjs(selectedSlot.date).format('HH:00'))
+
+	let selectedHour = dayjs(selectedSlot.date).format('HH:00')
+	const [bookingTime, setBookingTime] = useState(selectedHour)
+	const [blockStartTime, setBlockStartTime] = useState(selectedHour)
+	const [blockEndTime, setBlockEndTime] = useState(selectedHour)
+
 
 	const handleClose = () => {
 		setNewBookingOpen(false)
