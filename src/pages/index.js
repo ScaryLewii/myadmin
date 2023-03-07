@@ -17,7 +17,7 @@ import interactionPlugin from "@fullcalendar/interaction"
 import EventView from '@/components/calendar/event-view'
 import { addMinutes } from '@/ultilities/time'
 import EventModalView from '@/components/calendar/event-modal-view'
-import { getClientList, getServiceList, getStaffList } from '@/firebase/functions'
+import { getBookingsByDate, getClientList, getServiceList, getStaffList } from '@/firebase/functions'
 import NewEventModalView from '@/components/calendar/new-event-modal-view'
 
 export default function Home({ clients, staffs, services }) {
@@ -47,36 +47,8 @@ export default function Home({ clients, staffs, services }) {
 	}
 
   const getBookingList = selectedDate => {
-    const data = []
-
-    getDocsByDate(db, collectionType.booking, "bookingTime", ">", selectedDate)
-      .then(res => res.forEach(r => {
-        let bookingObj = {}
-
-        bookingObj.id = r.id
-        bookingObj.resourceId = r.staff.id
-        bookingObj.status = r.status
-        
-        const bookingTime = r.bookingTime;
-        bookingObj.start = new Date( bookingTime.seconds * 1000 );
-
-        const client = getDocById( db, collectionType.client, r.client.id )
-        const service = getDocById( db, collectionType.service, r.service.id )
-        const staff = getDocById( db, collectionType.staff, r.staff.id )
-
-        Promise.all( [ client, staff, service ] ).then( v => {
-          bookingObj.client = v[0]
-          bookingObj.staff = v[1]
-          bookingObj.staff.id = r.staff.id
-          bookingObj.service = v[2]
-          bookingObj.service.id = r.service.id
-
-          bookingObj.title = v[0].name
-          bookingObj.end = addMinutes( bookingTime, parseFloat(v[2].duration) ).toISOString();
-
-          data.push( bookingObj )
-        } ).then(() => setBookings( data ) )
-      }))
+    let data = []
+    getBookingsByDate(selectedDate, data, setBookings)
   }
 
   useEffect(() => {

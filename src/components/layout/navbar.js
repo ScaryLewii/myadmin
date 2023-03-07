@@ -19,7 +19,7 @@ const Navbar = () => {
 		<header className="sticky top-0 z-50 bg-orange-100 px-4 py-2.5 flex flex-wrap justify-between items-center mx-auto">
 			<div className="logo">
 				<Link href="/" title="MyBeautyAdmin">
-					<Image src="/logo.svg" height={32} width={32} alt="MyBeauty Admin" />
+					<Image src="/logo.svg" height={32} width={32} style={{ width: 32, height: 32 }} alt="MyBeauty Admin" />
 				</Link>
 			</div>
 			<ul className="flex flex-row space-x-8 mt-0">

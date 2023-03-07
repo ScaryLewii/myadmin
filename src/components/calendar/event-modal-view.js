@@ -15,10 +15,8 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 
 import { Button, Box, InputAdornment, TextField, Autocomplete, IconButton } from '@mui/material';
-import { useEffect, useState } from 'react';
 import TimeSlot from '@/helpers/time-slot';
 
-import { getServiceList, getStaffList } from '@/firebase/functions';
 import { uuidv4 } from '@firebase/util';
 
 const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, services }) => {
