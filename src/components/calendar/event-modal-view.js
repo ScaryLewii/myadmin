@@ -18,11 +18,25 @@ import { Button, Box, InputAdornment, TextField, Autocomplete, IconButton } from
 import TimeSlot from '@/helpers/time-slot';
 
 import { uuidv4 } from '@firebase/util';
+import { updateDocument } from '@/firebase/utils';
+import { db } from '@/firebase/config';
+import collectionType from '@/firebase/types';
 
 const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, services }) => {
 	//handleDateChange, handleLoyaltyPoint, deleteBooking, completeBooking
 	const handleClose = () => {
 		setBookingOpen(false)
+	}
+
+	const completeBooking = async () => {
+		const bookingId = selectedBooking.event.id
+		const data = {
+			status: 1
+		}
+
+		await updateDocument(db, collectionType.booking, bookingId, data)
+
+		handleClose()
 	}
 
 	const disabled = selectedBooking.event.extendedProps.status === 1 ? true : false
@@ -110,7 +124,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 
 				<div className="flex justify-between items-center gap-10 mt-8 px-2 border-l-4 border-primary">
 					<label className="text-base w-1/2">Loyalty Points:</label>
-					<di className="w-1/2 flex justify-between">
+					<div className="w-1/2 flex justify-between">
 						<TextField 
 							sx={{ width: '7ch' }} variant="standard" disabled
 							value={selectedBooking.event.extendedProps.service.price}
@@ -127,7 +141,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 							onChange={ e => setUsePoint(e.target.value) }
 							disabled={disabled}
 							inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} />
-					</di>
+					</div>
 				</div>
 
 				<div className="flex justify-between mt-8 bg-slate-800">
@@ -146,7 +160,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 					
 					{
 						!disabled &&
-						<Button variant="outline" className="w-full text-white bg-primary rounded-none hover:bg-primary-hover">
+						<Button variant="outline" onClick={completeBooking} className="w-full text-white bg-primary rounded-none hover:bg-primary-hover">
 							Complete
 						</Button>
 					}
