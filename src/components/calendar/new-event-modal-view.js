@@ -11,26 +11,30 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 
 import { Button, Box, TextField, Autocomplete, Tabs, Tab } from '@mui/material';
-import TimeSlot from '@/helpers/time-slot';
+import { TimeSlot, DaySlot } from '@/helpers/time-slot';
 
 import { uuidv4 } from '@firebase/util';
 import { useState } from 'react';
 import TabPanel from '../layout/tab';
 
-import { createBooking } from '@/firebase/functions';
+import { createBlocking, createBooking } from '@/firebase/functions';
+import CheckboxGroup from '../layout/checkbox-group';
 
 const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, clients, staffs, services }) => {
+	let selectedHour = dayjs(selectedSlot.date).format('HH:00')
+	let selectedDate = dayjs(selectedSlot.date).format('DD-MM-YYYY')
+
 	const [tabIndex, setTabIndex] = useState(0)
 	const [bookingClient, setBookingClient] = useState(null)
 	const [bookingService, setBookingService] = useState(null)
 	const [bookingStaff, setBookingStaff] = useState(staffs.filter(s => s.id === selectedSlot.resource.id)[0].id)
-	const [bookingDate, setBookingDate] = useState(dayjs(selectedSlot.date).format('DD-MM-YYYY'))
-
-	let selectedHour = dayjs(selectedSlot.date).format('HH:00')
+	const [bookingDate, setBookingDate] = useState(selectedDate)
 	const [bookingTime, setBookingTime] = useState(selectedHour)
+
+	const [daySelect, setDaySelect] = useState([])
+	const [blockingDate, setBlockingDate] = useState(selectedDate)
 	const [blockStartTime, setBlockStartTime] = useState(selectedHour)
 	const [blockEndTime, setBlockEndTime] = useState(selectedHour)
-
 
 	const handleClose = () => {
 		setNewBookingOpen(false)
@@ -40,8 +44,21 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 		setTabIndex(newIndex)
 	}
 
+	const handleDaySelect = e => {
+		if (e.target.checked) {
+			setDaySelect([...new Set([...daySelect, e.target.value])])
+		} else {
+			setDaySelect( daySelect.filter( d => d !== e.target.value ) )
+		}
+	}
+
 	const submitBooking = async () => {
 		createBooking( bookingClient, bookingStaff, bookingService, bookingDate, bookingTime )
+			.then( () => handleClose() )
+	}
+
+	const submitBlocking = async () => {
+		createBlocking( bookingStaff, daySelect, blockStartTime, blockEndTime )
 			.then( () => handleClose() )
 	}
 
@@ -128,7 +145,7 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 									id="time-select"
 									label="Time"
 									value={ bookingTime }
-									onChange={ (e, newTime) => setBookingTime(newTime) }
+									onChange={ e => setBookingTime(e.target.value) }
 								>
 									{
 										TimeSlot.map(t => <MenuItem key={uuidv4()} value={t}>{t}</MenuItem>)
@@ -165,11 +182,16 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 							<DatePicker className=" border-r w-full"
 								displayStaticWrapperAs="desktop"
 								openTo="day"
-								value={ bookingDate }
-								onChange={ newDate => setBookingDate(newDate) }
+								value={ blockingDate }
+								onChange={ newDate => setBlockingDate(newDate) }
+								disabled={ daySelect.length !== 0 }
 								renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
 							/>
 						</LocalizationProvider>
+					</div>
+
+					<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
+						<CheckboxGroup group={DaySlot} checkedState={daySelect} handleChange={handleDaySelect} />
 					</div>
 
 					<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
@@ -181,7 +203,7 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 									id="time-block-start"
 									label="From"
 									value={ blockStartTime }
-									onChange={ (e, v) => setBlockStartTime(v) }
+									onChange={ e => setBlockStartTime(e.target.value) }
 								>
 									{
 										TimeSlot.map(t => <MenuItem key={uuidv4()} value={t}>{t}</MenuItem>)
@@ -198,7 +220,7 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 									id="time-block-end"
 									label="To"
 									value={ blockEndTime }
-									onChange={ (e, v) => setBlockEndTime(v) }
+									onChange={ e => setBlockEndTime(e.target.value) }
 								>
 									{
 										TimeSlot.map(t => <MenuItem key={uuidv4()} value={t}>{t}</MenuItem>)
@@ -209,7 +231,7 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 					</div>
 
 					<div className="flex justify-between mt-8 bg-slate-900">
-						<Button variant="outline" className="text-white bg-primary rounded-none hover:bg-primary-hover w-full p-3">
+						<Button variant="outline" onClick={submitBlocking} className="text-white bg-primary rounded-none hover:bg-primary-hover w-full p-3">
 							Block
 						</Button>
 					</div>

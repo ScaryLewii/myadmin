@@ -95,4 +95,13 @@ const createBooking = async ( clientId, staffId, serviceId, date, time ) => {
 	} )
 }
 
-export { getStaffList, getServiceList, getClientList, getBookingsByDate, createBooking }
+const createBlocking = async ( staffId, days, startTime, endTime ) => {
+	const docRef = await addDoc( collection( db, collectionType.offtime ), {
+		staff: doc ( db, collectionType.staff, staffId ),
+		days: days,
+		start: startTime,
+		end: endTime
+	} )
+}
+
+export { getStaffList, getServiceList, getClientList, getBookingsByDate, createBooking, createBlocking }

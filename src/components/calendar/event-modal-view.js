@@ -15,7 +15,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 
 import { Button, Box, InputAdornment, TextField, Autocomplete, IconButton } from '@mui/material';
-import TimeSlot from '@/helpers/time-slot';
+import { TimeSlot } from '@/helpers/time-slot';
 
 import { uuidv4 } from '@firebase/util';
 import { updateDocument } from '@/firebase/utils';

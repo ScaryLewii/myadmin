@@ -2,7 +2,8 @@ const collectionType = {
 	service: "services",
 	booking: "bookings",
 	client: "clients",
-	staff: "staffs"
+	staff: "staffs",
+	offtime: "offtime"
 }
 
 export default collectionType
