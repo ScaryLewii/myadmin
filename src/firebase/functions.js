@@ -1,6 +1,6 @@
 import { db } from "./config"
 import collectionType from "./types"
-import { getCollection, getDocsByDate, getDocById } from "./utils"
+import { getCollection, getDocsByDate, getDocById, updateDocument, getDocsByMonths } from "./utils"
 import { addMinutes } from '@/ultilities/time'
 import { addDoc, collection, doc, Timestamp } from "firebase/firestore"
 import dayjs from 'dayjs';
@@ -51,8 +51,52 @@ const getClientList = async () => {
 	return data
 }
 
+const getBlockingSlot = async (tempArr, fn) => {
+	getCollection( db, collectionType.offtime, "staff" ).then( res => res.forEach( offtime => {
+		tempArr.push({
+			id: offtime.id,
+			resourceId: offtime.staff.id,
+			daysOfWeek: offtime.days,
+			startTime: offtime.start + ":00",
+			endTime: offtime.end + ":00",
+			display: 'background'
+		})
+	} )).then(() => fn(tempArr))
+}
+
 const getBookingsByDate = async (selectedDate, tempArr, fn) => {
 	getDocsByDate(db, collectionType.booking, "bookingTime", ">", selectedDate)
+		.then(res => res.forEach(r => {
+			let bookingObj = {}
+
+			bookingObj.id = r.id
+			bookingObj.resourceId = r.staff.id
+			bookingObj.status = r.status
+			
+			const bookingTime = r.bookingTime;
+			bookingObj.start = new Date( bookingTime.seconds * 1000 );
+
+			const client = getDocById( db, collectionType.client, r.client.id )
+			const service = getDocById( db, collectionType.service, r.service.id )
+			const staff = getDocById( db, collectionType.staff, r.staff.id )
+
+			Promise.all( [ client, staff, service ] ).then( v => {
+				bookingObj.client = v[0]
+				bookingObj.staff = v[1]
+				bookingObj.staff.id = r.staff.id
+				bookingObj.service = v[2]
+				bookingObj.service.id = r.service.id
+
+				bookingObj.title = v[0].name
+				bookingObj.end = addMinutes( bookingTime, parseFloat(v[2].duration) ).toISOString();
+
+				tempArr.push( bookingObj )
+			} ).then(() => fn(tempArr))
+		}))
+}
+
+const getBookingsByMonths = async (tempArr, fn) => {
+	getDocsByMonths(db, collectionType.booking, "bookingTime")
 		.then(res => res.forEach(r => {
 			let bookingObj = {}
 
@@ -95,6 +139,14 @@ const createBooking = async ( clientId, staffId, serviceId, date, time ) => {
 	} )
 }
 
+const completeBooking = async ( bookingId, refreshBookingList, bookingList ) => {
+	const data = {
+		status: 1
+	}
+
+	await updateDocument(db, collectionType.booking, bookingId, data)
+}
+
 const createBlocking = async ( staffId, days, startTime, endTime ) => {
 	const docRef = await addDoc( collection( db, collectionType.offtime ), {
 		staff: doc ( db, collectionType.staff, staffId ),
@@ -104,4 +156,4 @@ const createBlocking = async ( staffId, days, startTime, endTime ) => {
 	} )
 }
 
-export { getStaffList, getServiceList, getClientList, getBookingsByDate, createBooking, createBlocking }
+export { getStaffList, getServiceList, getClientList, getBookingsByDate, getBookingsByMonths, getBlockingSlot, createBooking, createBlocking, completeBooking }

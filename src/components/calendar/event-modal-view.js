@@ -3,6 +3,7 @@ import Dialog from '@mui/material/Dialog';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import DeleteIcon from '@mui/icons-material/Delete';
+import BookmarksIcon from '@mui/icons-material/Bookmarks';
 
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { DatePicker } from '@mui/x-date-pickers'
@@ -21,22 +22,37 @@ import { uuidv4 } from '@firebase/util';
 import { updateDocument } from '@/firebase/utils';
 import { db } from '@/firebase/config';
 import collectionType from '@/firebase/types';
+import { useState } from 'react';
 
-const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, services }) => {
-	//handleDateChange, handleLoyaltyPoint, deleteBooking, completeBooking
+const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, refreshBookingList, bookingList, staffs, services }) => {
+//handleDateChange, handleLoyaltyPoint, deleteBooking, completeBooking
+	const [selectedStaff, setSelectedStaff] = useState(staffs.filter(s => s.id === selectedBooking.event.extendedProps.staff.id)[0])
+	const [selectedService, setSelectedService] = useState(services.filter(s => s.id === selectedBooking.event.extendedProps.service.id)[0])
+	const [selectedDate, setSelectedDate] = useState(dayjs(selectedBooking.event.start).format('DD-MM-YYYY'))
+	const [selectedTime, setSelectedTime] = useState(dayjs(selectedBooking.event.start).format('HH:mm'))
+
 	const handleClose = () => {
 		setBookingOpen(false)
 	}
 
-	const completeBooking = async () => {
-		const bookingId = selectedBooking.event.id
+	const handleCompleteClick = async () => {
 		const data = {
 			status: 1
 		}
+		await updateDocument( db, collectionType.booking, selectedBooking.event.id, data )
 
-		await updateDocument(db, collectionType.booking, bookingId, data)
+		const newBookingList = bookingList.map( b => {
+			if ( b.id === selectedBooking.event.id ) {
+				b.status = 1
+			}
+		} )
+		await refreshBookingList(newBookingList)
 
-		handleClose()
+		setBookingOpen(false)
+	}
+
+	const updateBooking = async () => {
+
 	}
 
 	const disabled = selectedBooking.event.extendedProps.status === 1 ? true : false
@@ -69,8 +85,8 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 							id="staff-selector"
 							options={[...Object.values(staffs)]}
 							sx={{ width: "100%" }}
-							onChange={(e, v) => console.log(v)}
-							value={staffs.filter(s => s.id === selectedBooking.event.extendedProps.staff.id)[0]}
+							onChange={(e, v) => setSelectedStaff(v)}
+							value={selectedStaff}
 							disabled={disabled}
 							renderInput={(params) => <TextField {...params} label="Staff" />}
 						/>
@@ -84,8 +100,8 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 							id="service-selector"
 							options={[...Object.values(services)]}
 							sx={{ width: "100%" }}
-							onChange={(e, v) => console.log(v)}
-							value={services.filter(s => s.id === selectedBooking.event.extendedProps.service.id)[0]}
+							onChange={(e, v) => setSelectedService(v)}
+							value={selectedService}
 							disabled={disabled}
 							renderInput={(params) => <TextField {...params} label="Service" />}
 						/>
@@ -97,7 +113,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 						<DatePicker className=" border-r w-1/2"
 							displayStaticWrapperAs="desktop"
 							openTo="day"
-							value={ dayjs(selectedBooking.event.start).format('DD-MM-YYYY') }
+							value={ selectedDate }
 							disabled={disabled}
 							onChange={ newDate => handleDateChange(newDate) }
 							renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
@@ -112,7 +128,8 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 								id="time-select"
 								label="Time"
 								disabled={disabled}
-								value={ dayjs(selectedBooking.event.start).format('HH:mm') }
+								value={ selectedTime }
+								onChange={e => selectedTime(e.target.value)}
 							>
 								{
 									TimeSlot.map(t => <MenuItem key={uuidv4()} value={t}>{t}</MenuItem>)
@@ -160,10 +177,16 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 					
 					{
 						!disabled &&
-						<Button variant="outline" onClick={completeBooking} className="w-full text-white bg-primary rounded-none hover:bg-primary-hover">
+						<Button variant="outline" onClick={handleCompleteClick} className="w-full text-white bg-primary rounded-none hover:bg-primary-hover">
 							Complete
 						</Button>
 					}
+
+					<div className="px-1 py-1 bg-green-500 hover:bg-green-600">
+						<IconButton onClick={updateBooking} className="text-white w-full">
+							<BookmarksIcon />
+						</IconButton>
+					</div>
 				</div>
 			</Box>
 		</Dialog>

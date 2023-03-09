@@ -27,7 +27,7 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 	const [tabIndex, setTabIndex] = useState(0)
 	const [bookingClient, setBookingClient] = useState(null)
 	const [bookingService, setBookingService] = useState(null)
-	const [bookingStaff, setBookingStaff] = useState(staffs.filter(s => s.id === selectedSlot.resource.id)[0].id)
+	const [bookingStaff, setBookingStaff] = useState(staffs.filter(s => s.id === selectedSlot.resource.id)[0])
 	const [bookingDate, setBookingDate] = useState(selectedDate)
 	const [bookingTime, setBookingTime] = useState(selectedHour)
 
@@ -46,20 +46,20 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 
 	const handleDaySelect = e => {
 		if (e.target.checked) {
-			setDaySelect([...new Set([...daySelect, e.target.value])])
+			setDaySelect([...new Set([...daySelect, parseInt(e.target.value)])])
 		} else {
 			setDaySelect( daySelect.filter( d => d !== e.target.value ) )
 		}
 	}
 
 	const submitBooking = async () => {
-		createBooking( bookingClient, bookingStaff, bookingService, bookingDate, bookingTime )
-			.then( () => handleClose() )
+		createBooking( bookingClient, bookingStaff.id, bookingService, bookingDate, bookingTime )
+			.then( () => setNewBookingOpen(false) )
 	}
 
 	const submitBlocking = async () => {
-		createBlocking( bookingStaff, daySelect, blockStartTime, blockEndTime )
-			.then( () => handleClose() )
+		createBlocking( bookingStaff.id, daySelect, blockStartTime, blockEndTime )
+			.then( () => setNewBookingOpen(false) )
 	}
 
 	return (
@@ -99,8 +99,8 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 								id="staff-selector"
 								options={[...Object.values(staffs)]}
 								sx={{ width: "100%" }}
-								onChange={(e, v) => setBookingStaff(v.id)}
-								value={staffs.filter(s => s.id === selectedSlot.resource.id)[0]}
+								onChange={(e, v) => setBookingStaff(v)}
+								value={bookingStaff}
 								renderInput={(params) => <TextField {...params} label="Staff" />}
 							/>
 						</div>
@@ -170,8 +170,8 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 								id="staff-blocker"
 								options={[...Object.values(staffs)]}
 								sx={{ width: "100%" }}
-								onChange={(e, v) => setBookingStaff(v.id)}
-								value={staffs.filter(s => s.id === selectedSlot.resource.id)[0]}
+								onChange={(e, v) => setBookingStaff(v)}
+								value={bookingStaff}
 								renderInput={(params) => <TextField {...params} label="Staff" />}
 							/>
 						</div>

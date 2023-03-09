@@ -1,8 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-
-import { db } from '@/firebase/config'
-import { getCollection, getDocById, getDocsByDate } from '@/firebase/utils'
-import collectionType from '@/firebase/types'
+import { useEffect, useRef, useState } from 'react'
 
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { StaticDatePicker } from '@mui/x-date-pickers'
@@ -15,20 +11,25 @@ import resourceTimeGridPlugin from '@fullcalendar/resource-timegrid'
 import interactionPlugin from "@fullcalendar/interaction"
 
 import EventView from '@/components/calendar/event-view'
-import { addMinutes } from '@/ultilities/time'
 import EventModalView from '@/components/calendar/event-modal-view'
-import { getBookingsByDate, getClientList, getServiceList, getStaffList } from '@/firebase/functions'
+import { getBookingsByDate, getBlockingSlot, getClientList, getServiceList, getStaffList, getBookingsByMonths } from '@/firebase/functions'
 import NewEventModalView from '@/components/calendar/new-event-modal-view'
 
 export default function Home({ clients, staffs, services }) {
+  const [clientList, setClientList] = useState(clients)
+  const [staffList, setStaffList] = useState(staffs)
+  const [serviceList, setServiceList] = useState(services)
+
   const [selectedDate, setSelectedDate] = useState(new Date(new Date().setHours(0, 0, 0, 1))) // 0
-  const [bookings, setBookings] = useState(null) // 1
+  const [bookings, setBookings] = useState([])
+  const [blockings, setBlockings] = useState([])
+  const [events, setEvents] = useState([])
 
-  const [bookingOpen, setBookingOpen] = useState(false) // 2
-  const [selectedBooking, setSelectedBooking] = useState(null) // 3
+  const [bookingOpen, setBookingOpen] = useState(false)
+  const [selectedBooking, setSelectedBooking] = useState(null)
 
-  const [newBookingOpen, setNewBookingOpen] = useState(false) // 4
-  const [selectedSlot, setSelectedSlot] = useState(null) // 5
+  const [newBookingOpen, setNewBookingOpen] = useState(false)
+  const [selectedSlot, setSelectedSlot] = useState(null)
 
   const calendarRef = useRef(null)
 
@@ -42,18 +43,25 @@ export default function Home({ clients, staffs, services }) {
     setSelectedSlot(slotInfo)
   }
 
-  const handleDateChange = value => {
-		// setSelectedDate(value)
-	}
+  useEffect(() => {
+    const getBookingList = async () => {
+      let data = []
+      // getBookingsByDate(selectedDate, data, setBookings)
+      getBookingsByMonths(data, setBookings)
+    }
 
-  const getBookingList = selectedDate => {
-    let data = []
-    getBookingsByDate(selectedDate, data, setBookings)
-  }
+    const getBlockingList = async () => {
+      let data = []
+      getBlockingSlot(data, setBlockings)
+    }
+
+    getBookingList()
+    getBlockingList()
+  }, [])
 
   useEffect(() => {
-    getBookingList(selectedDate)
-  }, [selectedDate])
+    setEvents([...bookings, ...blockings])
+  }, [bookings, blockings])
 
   const handleCalendarDateChange = date => {
     setSelectedDate( date )
@@ -75,48 +83,51 @@ export default function Home({ clients, staffs, services }) {
       </LocalizationProvider>
 
       <div className="w-full pt-2">
-        <FullCalendar
-          headerToolbar={{
-            left: "",
-            center: "title",
-            right: ""
-          }}
-          plugins={[
-            resourceDayGridPlugin,
-            resourceTimeGridPlugin,
-            interactionPlugin
-          ]}
-          allDaySlot={ false }
-          slotMinTime={"10:00:00"}
-          slotMaxTime={"20:00:00"}
-          expandRows={ true }
-          initialView="resourceTimeGridDay"
-          nowIndicator
-          resources={ staffs }
-          dayMaxEventRows
-          editable
-          droppable
-          ref={calendarRef}
-          slotLabelFormat={{
-            hour: '2-digit',
-            minute: '2-digit',
-            meridiem: false,
-            hour12: false
-          }}
-          eventTimeFormat= {{
-            hour: '2-digit',
-            minute: '2-digit',
-            meridiem: false,
-            hour12: false
-          }}
-          events={ bookings }
-          eventContent={ EventView }
-          eventBackgroundColor="rgba(0,0,0,0)"
-          eventBorderColor="rgba(0,0,0,0)"
-          eventTextColor="#000"
-          eventClick={ handleEventClick }
-          dateClick={ handleDateClick }
-        />
+        {
+          bookings &&
+          <FullCalendar
+            headerToolbar={{
+              left: "",
+              center: "title",
+              right: ""
+            }}
+            plugins={[
+              resourceDayGridPlugin,
+              resourceTimeGridPlugin,
+              interactionPlugin
+            ]}
+            allDaySlot={ false }
+            slotMinTime={"10:00:00"}
+            slotMaxTime={"20:00:00"}
+            expandRows={ true }
+            initialView="resourceTimeGridDay"
+            nowIndicator
+            resources={ staffs }
+            dayMaxEventRows
+            editable
+            droppable
+            ref={calendarRef}
+            slotLabelFormat={{
+              hour: '2-digit',
+              minute: '2-digit',
+              meridiem: false,
+              hour12: false
+            }}
+            eventTimeFormat= {{
+              hour: '2-digit',
+              minute: '2-digit',
+              meridiem: false,
+              hour12: false
+            }}
+            events={ events }
+            eventContent={ EventView }
+            eventBackgroundColor="rgba(0,0,0,0)"
+            eventBorderColor="rgba(0,0,0,0)"
+            eventTextColor="#000"
+            eventClick={ handleEventClick }
+            dateClick={ handleDateClick }
+          />
+        }
       </div>
 
       {
@@ -125,8 +136,10 @@ export default function Home({ clients, staffs, services }) {
           bookingOpen = {bookingOpen}
           setBookingOpen = {setBookingOpen}
           selectedBooking = {selectedBooking}
-          staffs = {staffs}
-          services = {services}
+          bookingList = {bookings} 
+          refreshBookingList = {setBookings}
+          staffs = {staffList}
+          services = {serviceList}
         />
       }
 
@@ -136,9 +149,9 @@ export default function Home({ clients, staffs, services }) {
           newBookingOpen = {newBookingOpen}
           setNewBookingOpen = {setNewBookingOpen}
           selectedSlot = {selectedSlot}
-          clients = {clients}
-          staffs = {staffs}
-          services = {services}
+          clients = {clientList}
+          staffs = {staffList}
+          services = {serviceList}
         />
       }
     </section>
