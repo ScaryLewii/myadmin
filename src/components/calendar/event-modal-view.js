@@ -23,9 +23,12 @@ import { updateDocument } from '@/firebase/utils';
 import { db } from '@/firebase/config';
 import collectionType from '@/firebase/types';
 import { useState } from 'react';
+import { useAppContext } from "@/context/context"
 
-const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, refreshBookingList, bookingList, staffs, services }) => {
+const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, services }) => {
 //handleDateChange, handleLoyaltyPoint, deleteBooking, completeBooking
+	const {bookingList, setBookingList, refresh, doRefresh} = useAppContext()
+
 	const [selectedStaff, setSelectedStaff] = useState(staffs.filter(s => s.id === selectedBooking.event.extendedProps.staff.id)[0])
 	const [selectedService, setSelectedService] = useState(services.filter(s => s.id === selectedBooking.event.extendedProps.service.id)[0])
 	const [selectedDate, setSelectedDate] = useState(dayjs(selectedBooking.event.start).format('DD-MM-YYYY'))
@@ -36,18 +39,20 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, refreshB
 	}
 
 	const handleCompleteClick = async () => {
-		const data = {
-			status: 1
-		}
-		await updateDocument( db, collectionType.booking, selectedBooking.event.id, data )
+		// const data = {
+		// 	status: 1
+		// }
+		// await updateDocument( db, collectionType.booking, selectedBooking.event.id, data )
 
-		const newBookingList = bookingList.map( b => {
+		const newList = bookingList.map( b => {
 			if ( b.id === selectedBooking.event.id ) {
 				b.status = 1
 			}
-		} )
-		await refreshBookingList(newBookingList)
 
+			return b
+		})
+		setBookingList(newList)
+		doRefresh(!refresh)
 		setBookingOpen(false)
 	}
 

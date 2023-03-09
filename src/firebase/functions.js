@@ -51,9 +51,11 @@ const getClientList = async () => {
 	return data
 }
 
-const getBlockingSlot = async (tempArr, fn) => {
-	getCollection( db, collectionType.offtime, "staff" ).then( res => res.forEach( offtime => {
-		tempArr.push({
+const getBlockingSlot = async () => {
+	const data = []
+
+	await getCollection( db, collectionType.offtime, "staff" ).then( res => res.forEach( offtime => {
+		data.push({
 			id: offtime.id,
 			resourceId: offtime.staff.id,
 			daysOfWeek: offtime.days,
@@ -61,7 +63,9 @@ const getBlockingSlot = async (tempArr, fn) => {
 			endTime: offtime.end + ":00",
 			display: 'background'
 		})
-	} )).then(() => fn(tempArr))
+	} ))
+
+	return data
 }
 
 const getBookingsByDate = async (selectedDate, tempArr, fn) => {
@@ -95,8 +99,10 @@ const getBookingsByDate = async (selectedDate, tempArr, fn) => {
 		}))
 }
 
-const getBookingsByMonths = async (tempArr, fn) => {
-	getDocsByMonths(db, collectionType.booking, "bookingTime")
+const getBookingsByMonths = async () => {
+	const data = []
+
+	await getDocsByMonths(db, collectionType.booking, "bookingTime")
 		.then(res => res.forEach(r => {
 			let bookingObj = {}
 
@@ -105,7 +111,7 @@ const getBookingsByMonths = async (tempArr, fn) => {
 			bookingObj.status = r.status
 			
 			const bookingTime = r.bookingTime;
-			bookingObj.start = new Date( bookingTime.seconds * 1000 );
+			bookingObj.start = new Date( bookingTime.seconds * 1000 ).toISOString();
 
 			const client = getDocById( db, collectionType.client, r.client.id )
 			const service = getDocById( db, collectionType.service, r.service.id )
@@ -121,9 +127,11 @@ const getBookingsByMonths = async (tempArr, fn) => {
 				bookingObj.title = v[0].name
 				bookingObj.end = addMinutes( bookingTime, parseFloat(v[2].duration) ).toISOString();
 
-				tempArr.push( bookingObj )
-			} ).then(() => fn(tempArr))
+				data.push( JSON.parse(JSON.stringify(bookingObj)) )
+			} )
 		}))
+	
+	return data
 }
 
 const createBooking = async ( clientId, staffId, serviceId, date, time ) => {

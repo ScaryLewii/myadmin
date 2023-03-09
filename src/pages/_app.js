@@ -1,10 +1,14 @@
 import Layout from '@/components/layout/layout'
 import '@/styles/globals.css'
 
+import { AppContextProvider } from '@/context/context'
+
 export default function App({ Component, pageProps }) {
-  return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
-  )
+	return (
+		<AppContextProvider>
+			<Layout>
+				<Component {...pageProps} />
+			</Layout>
+		</AppContextProvider>
+	)
 }

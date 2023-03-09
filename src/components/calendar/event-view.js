@@ -3,7 +3,7 @@ const EventView = booking => {
 		return <div className="bg-gray-900 w-full h-full"><span>{ booking.timeText }</span></div>
 	}
 
-	const isComplete = booking.event.extendedProps.status === 1 ? true : false
+	let isComplete = booking.event.extendedProps.status === 1 ? true : false
 
 	return (
 		<div className={`h-full p-1 rounded-sm border border-l-4
