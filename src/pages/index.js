@@ -22,6 +22,12 @@ import { useBookingContext } from '@/context/booking'
 import { useBlockingContext } from '@/context/blocking'
 
 export default function Home() {
+	const {serviceList} = useServiceContext()
+	const {staffList} = useStaffContext()
+	const {clientList} = useClientContext()
+	const {bookingList} = useBookingContext()
+	const {blockingList} = useBlockingContext()
+	
 	const [selectedDate, setSelectedDate] = useState(new Date(new Date().setHours(0, 0, 0, 1))) // 0
 	const [events, setEvents] = useState([])
 
@@ -32,12 +38,6 @@ export default function Home() {
 	const [selectedSlot, setSelectedSlot] = useState(null)
 
 	const calendarRef = useRef(null)
-
-	const {serviceList} = useServiceContext()
-	const {staffList} = useStaffContext()
-	const {clientList} = useClientContext()
-	const {bookingList} = useBookingContext()
-	const {blockingList} = useBlockingContext()
 
 	const handleEventClick = bookingEvent => {
 		setBookingOpen(true)
@@ -59,8 +59,8 @@ export default function Home() {
 
 	const handleCalendarDateChange = date => {
 		setSelectedDate( date )
+
 		const calendarApi = calendarRef.current.getApi()
-		// console.log(calendarApi)
 		calendarApi.gotoDate( new Date( date ) )
 	}
 

@@ -121,7 +121,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen }) => {
 							value={ selectedDate }
 							disabled={disabled}
 							onChange={ newDate => setSelectedDate(newDate) }
-							renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
+							renderInput={ params => <TextField {...params} label="Date - mm/dd/yy" /> }
 						/>
 					</LocalizationProvider>
 

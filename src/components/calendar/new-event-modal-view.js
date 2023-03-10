@@ -24,10 +24,14 @@ import { useClientContext } from '@/context/client';
 import { useBookingContext } from '@/context/booking';
 import { useStaffContext } from '@/context/staff';
 import { useServiceContext } from '@/context/service';
+import { useRouter } from 'next/router';
+import { addDoc, collection, doc } from 'firebase/firestore';
+import { db } from '@/firebase/config';
+import collectionType from '@/firebase/types';
 
 const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBookingOpen }) => {
 	let selectedHour = dayjs(selectedSlot.date).format('HH:00')
-	let selectedDate = dayjs(selectedSlot.date).format('DD-MM-YYYY')
+	let selectedDate = dayjs(selectedSlot.date).format('MM-DD-YYYY')
 	const calendarApi = calendar.current.getApi()
 
 	const {bookingList, setBookingList} = useBookingContext()
@@ -47,6 +51,11 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 	const [blockStartTime, setBlockStartTime] = useState(selectedHour)
 	const [blockEndTime, setBlockEndTime] = useState(selectedHour)
 
+	const router = useRouter();
+	const refreshData = () => {
+		router.replace(router.asPath);
+	}
+
 	const handleClose = () => {
 		setNewBookingOpen(false)
 	}
@@ -63,7 +72,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 		}
 	}
 
-	const submitBooking = async () => {
+	const submitBooking = () => {
 		const startHour = bookingTime.split(":")[0]
 		const startMinute = bookingTime.split(":")[1]
 		const startTime = new Date(new Date(bookingDate).setHours(startHour, startMinute, 0, 0)).toISOString()
@@ -75,21 +84,24 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 			title: clientList.find(c => c.id === bookingClient).title,
 			client: clientList.find(c => c.id === bookingClient),
 			service: serviceList.find(s => s.id === bookingService),
+			staff: staffList.find(s => s.id === bookingStaff.id),
 			start: startTime,
 			end: endTime
 		}
 
-		setBookingList([...bookingList, data])
-		// calendarApi.addEvent(data)
-		// console.log(calendarApi.getEvents())
-
-		// createBooking( bookingClient, bookingStaff.id, bookingService, bookingDate, bookingTime )
-		// 	.then( docRef => {
-		// 		data.id = docRef.id
-				
-		// 		calendarApi.addEvent(data)
-		// 		setNewBookingOpen(false)
-		// 	} )
+		addDoc( collection( db, collectionType.booking ), {
+			client: doc( db, collectionType.client, bookingClient ),
+			staff: doc( db, collectionType.staff, bookingStaff.id ),
+			service: doc( db, collectionType.service, bookingService ),
+			bookingTime: new Date(new Date(dayjs(bookingDate).format('MM-DD-YYYY')).setHours(startHour, startMinute, 0, 0)),
+			status: 0
+		} ).then( docRef => {
+			data.id = docRef.id
+			
+			setBookingList([...bookingList, data])
+			refreshData()
+			setNewBookingOpen(false)
+		} )
 	}
 
 	const submitBlocking = async () => {
@@ -168,7 +180,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 								openTo="day"
 								value={ bookingDate }
 								onChange={ newDate => setBookingDate(newDate) }
-								renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
+								renderInput={ params => <TextField {...params} label="Date - mm/dd/yy" /> }
 							/>
 						</LocalizationProvider>
 
@@ -220,7 +232,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 								value={ blockingDate }
 								onChange={ newDate => setBlockingDate(newDate) }
 								disabled={ daySelect.length !== 0 }
-								renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
+								renderInput={ params => <TextField {...params} label="Date - mm/dd/yy" /> }
 							/>
 						</LocalizationProvider>
 					</div>

@@ -1,6 +1,6 @@
 const EventView = booking => {
 	if (!booking.event.title) {
-		return <div className="bg-gray-900 w-full h-full"><span>{ booking.timeText }</span></div>
+		return <div className="bg-black w-full h-full"><span>{ booking.timeText }</span></div>
 	}
 
 	let isComplete = booking.event.extendedProps.status === 1 ? true : false

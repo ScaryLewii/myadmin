@@ -18,7 +18,8 @@ const BlockingContextProvider = ({ children }) => {
                     daysOfWeek: offtime.days,
                     startTime: offtime.start + ":00",
                     endTime: offtime.end + ":00",
-                    display: 'background'
+                    display: 'background',
+                    color: "black"
                 })
             } ))
             
