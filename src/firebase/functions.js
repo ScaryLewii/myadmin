@@ -2,7 +2,7 @@ import { db } from "./config"
 import collectionType from "./types"
 import { getCollection, getDocsByDate, getDocById, updateDocument, getDocsByMonths } from "./utils"
 import { addMinutes } from '@/ultilities/time'
-import { addDoc, collection, doc, Timestamp } from "firebase/firestore"
+import { addDoc, collection, doc } from "firebase/firestore"
 import dayjs from 'dayjs';
 
 const getStaffList = async () => {
@@ -145,6 +145,8 @@ const createBooking = async ( clientId, staffId, serviceId, date, time ) => {
 		bookingTime: new Date(new Date(dayjs(date).format('DD-MM-YYYY')).setHours(startHour, startMinute, 0, 0)),
 		status: 0
 	} )
+
+	return docRef
 }
 
 const completeBooking = async ( bookingId, refreshBookingList, bookingList ) => {

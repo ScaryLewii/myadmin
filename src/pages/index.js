@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { AppContext, AppContextProvider, useAppContext } from '@/context/context'
 
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { StaticDatePicker } from '@mui/x-date-pickers'
@@ -16,6 +15,12 @@ import EventModalView from '@/components/calendar/event-modal-view'
 import { getBlockingSlot, getClientList, getServiceList, getStaffList, getBookingsByMonths } from '@/firebase/functions'
 import NewEventModalView from '@/components/calendar/new-event-modal-view'
 
+import { useServiceContext } from '@/context/service'
+import { useStaffContext } from '@/context/staff'
+import { useClientContext } from '@/context/client'
+import { useBookingContext } from '@/context/booking'
+import { useBlockingContext } from '@/context/blocking'
+
 export default function Home({ clients, staffs, services, bookings, blockings }) {
 	const [selectedDate, setSelectedDate] = useState(new Date(new Date().setHours(0, 0, 0, 1))) // 0
 	const [events, setEvents] = useState([])
@@ -28,13 +33,11 @@ export default function Home({ clients, staffs, services, bookings, blockings })
 
 	const calendarRef = useRef(null)
 
-	const { 
-		clientList, setClientList,
-		staffList, setStaffList,
-		serviceList, setServiceList,
-		bookingList, setBookingList,
-		blockingList, setBlockingList,
-	} = useAppContext()
+	const {serviceList, setServiceList} = useServiceContext()
+	const {staffList, setStaffList} = useStaffContext()
+	const {clientList, setClientList} = useClientContext()
+	const {bookingList, setBookingList} = useBookingContext()
+	const {blockingList, setBlockingList} = useBlockingContext()
 
 	useEffect(() => {
 		setClientList(clients)
@@ -70,9 +73,6 @@ export default function Home({ clients, staffs, services, bookings, blockings })
 	}
 
 	return (
-		<AppContext.Consumer>
-		{() => 
-			
 		<section className="flex">
 			<LocalizationProvider dateAdapter={AdapterDayjs}>
 				<StaticDatePicker className="bg-slate-100 border-r"
@@ -135,16 +135,13 @@ export default function Home({ clients, staffs, services, bookings, blockings })
 					bookingOpen = {bookingOpen}
 					setBookingOpen = {setBookingOpen}
 					selectedBooking = {selectedBooking}
-					bookingList = {bookingList} 
-					refreshBookingList = {setBookingList}
-					staffs = {staffList}
-					services = {serviceList}
 				/>
 			}
 
 			{
 				newBookingOpen &&
 				<NewEventModalView
+					calendar= {calendarRef}
 					newBookingOpen = {newBookingOpen}
 					setNewBookingOpen = {setNewBookingOpen}
 					selectedSlot = {selectedSlot}
@@ -154,8 +151,6 @@ export default function Home({ clients, staffs, services, bookings, blockings })
 				/>
 			}
 		</section>
-}
-		</AppContext.Consumer>
 	)
 }
 

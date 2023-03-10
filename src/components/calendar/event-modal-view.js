@@ -23,14 +23,18 @@ import { updateDocument } from '@/firebase/utils';
 import { db } from '@/firebase/config';
 import collectionType from '@/firebase/types';
 import { useState } from 'react';
-import { useAppContext } from "@/context/context"
+import { useBookingContext } from '@/context/booking';
+import { useStaffContext } from '@/context/staff';
+import { useServiceContext } from '@/context/service';
 
-const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, services }) => {
-//handleDateChange, handleLoyaltyPoint, deleteBooking, completeBooking
-	const {bookingList, setBookingList, refresh, doRefresh} = useAppContext()
+const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen }) => {
+//handleDateChange, handleLoyaltyPoint, deleteBooking
+	const {bookingList, setBookingList} = useBookingContext()
+	const {staffList, setStaffList} = useStaffContext()
+	const {serviceList, setServiceList} = useServiceContext()
 
-	const [selectedStaff, setSelectedStaff] = useState(staffs.filter(s => s.id === selectedBooking.event.extendedProps.staff.id)[0])
-	const [selectedService, setSelectedService] = useState(services.filter(s => s.id === selectedBooking.event.extendedProps.service.id)[0])
+	const [selectedStaff, setSelectedStaff] = useState(staffList.find(s => s.id === selectedBooking.event.extendedProps.staff.id))
+	const [selectedService, setSelectedService] = useState(serviceList.find(s => s.id === selectedBooking.event.extendedProps.service.id))
 	const [selectedDate, setSelectedDate] = useState(dayjs(selectedBooking.event.start).format('DD-MM-YYYY'))
 	const [selectedTime, setSelectedTime] = useState(dayjs(selectedBooking.event.start).format('HH:mm'))
 
@@ -39,20 +43,16 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 	}
 
 	const handleCompleteClick = async () => {
-		// const data = {
-		// 	status: 1
-		// }
-		// await updateDocument( db, collectionType.booking, selectedBooking.event.id, data )
+		await updateDocument( db, collectionType.booking, selectedBooking.event.id, {status: 1} )
+		selectedBooking.event.setExtendedProp("status", 1)
 
-		const newList = bookingList.map( b => {
+		setBookingList(bookingList.map( b => {
 			if ( b.id === selectedBooking.event.id ) {
 				b.status = 1
 			}
 
 			return b
-		})
-		setBookingList(newList)
-		doRefresh(!refresh)
+		}))
 		setBookingOpen(false)
 	}
 
@@ -84,11 +84,11 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 				</div>
 
 				{
-					staffs && 
+					staffList && 
 					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 						<Autocomplete
 							id="staff-selector"
-							options={[...Object.values(staffs)]}
+							options={[...Object.values(staffList)]}
 							sx={{ width: "100%" }}
 							onChange={(e, v) => setSelectedStaff(v)}
 							value={selectedStaff}
@@ -99,11 +99,11 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 				}
 
 				{
-					services &&
+					serviceList &&
 					<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 						<Autocomplete
 							id="service-selector"
-							options={[...Object.values(services)]}
+							options={[...Object.values(serviceList)]}
 							sx={{ width: "100%" }}
 							onChange={(e, v) => setSelectedService(v)}
 							value={selectedService}
@@ -120,7 +120,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 							openTo="day"
 							value={ selectedDate }
 							disabled={disabled}
-							onChange={ newDate => handleDateChange(newDate) }
+							onChange={ newDate => setSelectedDate(newDate) }
 							renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
 						/>
 					</LocalizationProvider>
@@ -134,7 +134,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen, staffs, 
 								label="Time"
 								disabled={disabled}
 								value={ selectedTime }
-								onChange={e => selectedTime(e.target.value)}
+								onChange={e => setSelectedTime(e.target.value)}
 							>
 								{
 									TimeSlot.map(t => <MenuItem key={uuidv4()} value={t}>{t}</MenuItem>)

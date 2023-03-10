@@ -17,17 +17,28 @@ import { uuidv4 } from '@firebase/util';
 import { useState } from 'react';
 import TabPanel from '../layout/tab';
 
-import { createBlocking, createBooking } from '@/firebase/functions';
+import { createBlocking, createBooking, getBookingsByMonths } from '@/firebase/functions';
 import CheckboxGroup from '../layout/checkbox-group';
 
-const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, clients, staffs, services }) => {
+import { useClientContext } from '@/context/client';
+import { useBookingContext } from '@/context/booking';
+import { useStaffContext } from '@/context/staff';
+import { useServiceContext } from '@/context/service';
+
+const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBookingOpen }) => {
 	let selectedHour = dayjs(selectedSlot.date).format('HH:00')
 	let selectedDate = dayjs(selectedSlot.date).format('DD-MM-YYYY')
+	const calendarApi = calendar.current.getApi()
+
+	const {bookingList, setBookingList} = useBookingContext()
+	const {staffList, setStaffList} = useStaffContext()
+	const {serviceList, setServiceList} = useServiceContext()
+	const {clientList, setClientList} = useClientContext()
 
 	const [tabIndex, setTabIndex] = useState(0)
 	const [bookingClient, setBookingClient] = useState(null)
 	const [bookingService, setBookingService] = useState(null)
-	const [bookingStaff, setBookingStaff] = useState(staffs.filter(s => s.id === selectedSlot.resource.id)[0])
+	const [bookingStaff, setBookingStaff] = useState(staffList.find(s => s.id === selectedSlot.resource.id))
 	const [bookingDate, setBookingDate] = useState(selectedDate)
 	const [bookingTime, setBookingTime] = useState(selectedHour)
 
@@ -53,8 +64,32 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 	}
 
 	const submitBooking = async () => {
-		createBooking( bookingClient, bookingStaff.id, bookingService, bookingDate, bookingTime )
-			.then( () => setNewBookingOpen(false) )
+		const startHour = bookingTime.split(":")[0]
+		const startMinute = bookingTime.split(":")[1]
+		const startTime = new Date(new Date(bookingDate).setHours(startHour, startMinute, 0, 0)).toISOString()
+		const endTime = dayjs(startTime).add(parseFloat(serviceList.find(s => s.id === bookingService).duration), "minute").toISOString()
+
+		const data = {
+			resourceId: bookingStaff.id,
+			status: 0,
+			title: clientList.find(c => c.id === bookingClient).title,
+			client: clientList.find(c => c.id === bookingClient),
+			service: serviceList.find(s => s.id === bookingService),
+			start: startTime,
+			end: endTime
+		}
+
+		setBookingList([...bookingList, data])
+		// calendarApi.addEvent(data)
+		// console.log(calendarApi.getEvents())
+
+		// createBooking( bookingClient, bookingStaff.id, bookingService, bookingDate, bookingTime )
+		// 	.then( docRef => {
+		// 		data.id = docRef.id
+				
+		// 		calendarApi.addEvent(data)
+		// 		setNewBookingOpen(false)
+		// 	} )
 	}
 
 	const submitBlocking = async () => {
@@ -71,11 +106,11 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 				</Tabs>
 				<TabPanel value={tabIndex} index={0}>
 					{
-						clients && 
+						clientList && 
 						<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 							<Autocomplete
 								id="staff-selector"
-								options={[...Object.values(clients)]}
+								options={[...Object.values(clientList)]}
 								sx={{ width: "100%" }}
 								onChange={(e, v) => setBookingClient(v.id)}
 								getOptionLabel={(option) => option.title}
@@ -93,11 +128,11 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 					}
 
 					{
-						staffs && 
+						staffList && 
 						<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 							<Autocomplete
 								id="staff-selector"
-								options={[...Object.values(staffs)]}
+								options={[...Object.values(staffList)]}
 								sx={{ width: "100%" }}
 								onChange={(e, v) => setBookingStaff(v)}
 								value={bookingStaff}
@@ -107,11 +142,11 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 					}
 
 					{
-						services &&
+						serviceList &&
 						<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 							<Autocomplete
 								id="service-selector"
-								options={[...Object.values(services)]}
+								options={[...Object.values(serviceList)]}
 								sx={{ width: "100%" }}
 								onChange={(e, v) => setBookingService(v.id)}
 								getOptionLabel={(option) => option.title}
@@ -164,11 +199,11 @@ const NewEventModalView = ({ newBookingOpen, selectedSlot, setNewBookingOpen, cl
 
 				<TabPanel value={tabIndex} index={1}>
 					{
-						staffs && 
+						staffList && 
 						<div className="flex justify-between my-8 px-2 gap-10 border-l-4 border-primary">
 							<Autocomplete
 								id="staff-blocker"
-								options={[...Object.values(staffs)]}
+								options={[...Object.values(staffList)]}
 								sx={{ width: "100%" }}
 								onChange={(e, v) => setBookingStaff(v)}
 								value={bookingStaff}
