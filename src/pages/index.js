@@ -21,7 +21,7 @@ import { useClientContext } from '@/context/client'
 import { useBookingContext } from '@/context/booking'
 import { useBlockingContext } from '@/context/blocking'
 
-export default function Home({ clients, staffs, services, bookings, blockings }) {
+export default function Home() {
 	const [selectedDate, setSelectedDate] = useState(new Date(new Date().setHours(0, 0, 0, 1))) // 0
 	const [events, setEvents] = useState([])
 
@@ -33,19 +33,11 @@ export default function Home({ clients, staffs, services, bookings, blockings })
 
 	const calendarRef = useRef(null)
 
-	const {serviceList, setServiceList} = useServiceContext()
-	const {staffList, setStaffList} = useStaffContext()
-	const {clientList, setClientList} = useClientContext()
-	const {bookingList, setBookingList} = useBookingContext()
-	const {blockingList, setBlockingList} = useBlockingContext()
-
-	useEffect(() => {
-		setClientList(clients)
-		setStaffList(staffs)
-		setServiceList(services)
-		setBookingList(bookings)
-		setBlockingList(blockings)
-	})
+	const {serviceList} = useServiceContext()
+	const {staffList} = useStaffContext()
+	const {clientList} = useClientContext()
+	const {bookingList} = useBookingContext()
+	const {blockingList} = useBlockingContext()
 
 	const handleEventClick = bookingEvent => {
 		setBookingOpen(true)
@@ -102,7 +94,7 @@ export default function Home({ clients, staffs, services, bookings, blockings })
 					expandRows={ true }
 					initialView="resourceTimeGridDay"
 					nowIndicator
-					resources={ staffs }
+					resources={ staffList }
 					dayMaxEventRows
 					editable
 					droppable
@@ -152,22 +144,4 @@ export default function Home({ clients, staffs, services, bookings, blockings })
 			}
 		</section>
 	)
-}
-
-export async function getServerSideProps() {
-	const clients = await getClientList()
-	const staffs = await getStaffList()
-	const services = await getServiceList()
-	const bookings = await getBookingsByMonths()
-	const blockings = await getBlockingSlot()
-
-	return {
-		props: {
-			clients,
-			staffs,
-			services,
-			bookings,
-			blockings
-		}
-	}
 }

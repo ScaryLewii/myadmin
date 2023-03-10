@@ -5,24 +5,18 @@ import { addMinutes } from '@/ultilities/time'
 import { addDoc, collection, doc } from "firebase/firestore"
 import dayjs from 'dayjs';
 
-const getStaffList = async () => {
-	const data = []
-
-	await getCollection( db, collectionType.staff, "name" ).then( res => res.forEach( s => {
+const getStaffList = () => {
+	getCollection( db, collectionType.staff, "name" ).then( res => res.forEach( s => {
 		data.push({
 			id: s.id,
 			title: s.name,
 			label: s.name
 		})
 	} ) )
-	
-	return data
 }
 
-const getServiceList = async () => {
-	const data = []
-
-	await getCollection( db, collectionType.service, "name" ).then( res => res.forEach( s => {
+const getServiceList = () => {
+	getCollection( db, collectionType.service, "name" ).then( res => res.forEach( s => {
 		data.push({
 			id: s.id,
 			title: s.name,
@@ -31,14 +25,10 @@ const getServiceList = async () => {
 			duration: s.duration
 		})
 	} ) )
-
-	return data
 }
 
-const getClientList = async () => {
-	const data = []
-
-	await getCollection( db, collectionType.client, "name" ).then( res => res.forEach( c => {
+const getClientList = () => {
+	getCollection( db, collectionType.client, "name" ).then( res => res.forEach( c => {
 		data.push({
 			id: c.id,
 			title: c.name,
@@ -47,14 +37,10 @@ const getClientList = async () => {
 			phone: c.phone ?? null
 		})
 	} ))
-
-	return data
 }
 
-const getBlockingSlot = async () => {
-	const data = []
-
-	await getCollection( db, collectionType.offtime, "staff" ).then( res => res.forEach( offtime => {
+const getBlockingSlot = () => {
+	getCollection( db, collectionType.offtime, "staff" ).then( res => res.forEach( offtime => {
 		data.push({
 			id: offtime.id,
 			resourceId: offtime.staff.id,
@@ -65,7 +51,6 @@ const getBlockingSlot = async () => {
 		})
 	} ))
 
-	return data
 }
 
 const getBookingsByDate = async (selectedDate, tempArr, fn) => {
@@ -99,10 +84,8 @@ const getBookingsByDate = async (selectedDate, tempArr, fn) => {
 		}))
 }
 
-const getBookingsByMonths = async () => {
-	const data = []
-
-	await getDocsByMonths(db, collectionType.booking, "bookingTime")
+const getBookingsByMonths = () => {
+	getDocsByMonths(db, collectionType.booking, "bookingTime")
 		.then(res => res.forEach(r => {
 			let bookingObj = {}
 
@@ -130,8 +113,6 @@ const getBookingsByMonths = async () => {
 				data.push( JSON.parse(JSON.stringify(bookingObj)) )
 			} )
 		}))
-	
-	return data
 }
 
 const createBooking = async ( clientId, staffId, serviceId, date, time ) => {
