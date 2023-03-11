@@ -51,11 +51,6 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 	const [blockStartTime, setBlockStartTime] = useState(selectedHour)
 	const [blockEndTime, setBlockEndTime] = useState(selectedHour)
 
-	const router = useRouter();
-	const refreshData = () => {
-		router.replace(router.asPath);
-	}
-
 	const handleClose = () => {
 		setNewBookingOpen(false)
 	}
@@ -99,7 +94,8 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 			data.id = docRef.id
 			
 			setBookingList([...bookingList, data])
-			refreshData()
+			
+			calendarApi.getEvents()
 			setNewBookingOpen(false)
 		} )
 	}

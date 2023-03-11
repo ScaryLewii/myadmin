@@ -124,6 +124,7 @@ export default function Home() {
 			{
 				bookingOpen && 
 				<EventModalView
+					calendar= {calendarRef}
 					bookingOpen = {bookingOpen}
 					setBookingOpen = {setBookingOpen}
 					selectedBooking = {selectedBooking}

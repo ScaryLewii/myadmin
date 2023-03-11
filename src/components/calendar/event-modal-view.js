@@ -26,8 +26,9 @@ import { useState } from 'react';
 import { useBookingContext } from '@/context/booking';
 import { useStaffContext } from '@/context/staff';
 import { useServiceContext } from '@/context/service';
+import { deleteDoc, doc } from 'firebase/firestore';
 
-const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen }) => {
+const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen }) => {
 //handleDateChange, handleLoyaltyPoint, deleteBooking
 	const {bookingList, setBookingList} = useBookingContext()
 	const {staffList, setStaffList} = useStaffContext()
@@ -37,6 +38,8 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen }) => {
 	const [selectedService, setSelectedService] = useState(serviceList.find(s => s.id === selectedBooking.event.extendedProps.service.id))
 	const [selectedDate, setSelectedDate] = useState(dayjs(selectedBooking.event.start).format('DD-MM-YYYY'))
 	const [selectedTime, setSelectedTime] = useState(dayjs(selectedBooking.event.start).format('HH:mm'))
+
+	const calendarApi = calendar.current.getApi()
 
 	const handleClose = () => {
 		setBookingOpen(false)
@@ -53,6 +56,12 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen }) => {
 
 			return b
 		}))
+		setBookingOpen(false)
+	}
+
+	const deleteBooking = async () => {
+		await deleteDoc( doc( db, collectionType.booking, selectedBooking.event.id) )
+		selectedBooking.event.remove()
 		setBookingOpen(false)
 	}
 
@@ -168,7 +177,7 @@ const EventModalView = ({ bookingOpen, selectedBooking, setBookingOpen }) => {
 
 				<div className="flex justify-between mt-8 bg-slate-800">
 					<div className="px-1 py-1 bg-gray-700 hover:bg-gray-800">
-						<IconButton className="text-white w-full">
+						<IconButton onClick={deleteBooking} className="text-white w-full">
 							<DeleteIcon />
 						</IconButton>
 					</div>
