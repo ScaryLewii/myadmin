@@ -26,7 +26,7 @@ import { useState } from 'react';
 import { useBookingContext } from '@/context/booking';
 import { useStaffContext } from '@/context/staff';
 import { useServiceContext } from '@/context/service';
-import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc } from 'firebase/firestore';
 
 const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen }) => {
 // handleLoyaltyPoint,
@@ -34,8 +34,8 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 	const {staffList, setStaffList} = useStaffContext()
 	const {serviceList, setServiceList} = useServiceContext()
 
-	const [selectedStaff, setSelectedStaff] = useState(staffList.find(s => s.id === selectedBooking.event.extendedProps.staff.id))
-	const [selectedService, setSelectedService] = useState(serviceList.find(s => s.id === selectedBooking.event.extendedProps.service.id))
+	const [selectedStaff, setSelectedStaff] = useState(staffList.find(s => s.id === selectedBooking.event.extendedProps.staff?.id))
+	const [selectedService, setSelectedService] = useState(serviceList.find(s => s.id === selectedBooking.event.extendedProps.service?.id))
 	const [selectedDate, setSelectedDate] = useState(dayjs(selectedBooking.event.start).format('DD-MM-YYYY'))
 	const [selectedTime, setSelectedTime] = useState(dayjs(selectedBooking.event.start).format('HH:mm'))
 
@@ -103,6 +103,10 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 	}
 
 	const disabled = selectedBooking.event.extendedProps.status === 1 ? true : false
+
+	if (!selectedBooking.event.extendedProps.staff || !selectedBooking.event.extendedProps.service) {
+		return;
+	}
 
 	return (
 		<Dialog open={bookingOpen} onClose={handleClose} className="text-sm">

@@ -17,23 +17,23 @@ import { uuidv4 } from '@firebase/util';
 import { useState } from 'react';
 import TabPanel from '../layout/tab';
 
-import { createBlocking, createBooking, getBookingsByMonths } from '@/firebase/functions';
 import CheckboxGroup from '../layout/checkbox-group';
 
 import { useClientContext } from '@/context/client';
 import { useBookingContext } from '@/context/booking';
 import { useStaffContext } from '@/context/staff';
 import { useServiceContext } from '@/context/service';
-import { useRouter } from 'next/router';
 import { addDoc, collection, doc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import collectionType from '@/firebase/types';
+import { useBlockingContext } from '@/context/blocking';
 
 const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBookingOpen }) => {
 	let selectedHour = dayjs(selectedSlot.date).format('HH:00')
 	let selectedDate = dayjs(selectedSlot.date).format('MM-DD-YYYY')
 
 	const {bookingList, setBookingList} = useBookingContext()
+	const {blockingList, setBlockingList} = useBlockingContext()
 	const {staffList, setStaffList} = useStaffContext()
 	const {serviceList, setServiceList} = useServiceContext()
 	const {clientList, setClientList} = useClientContext()
@@ -93,15 +93,31 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 			data.id = docRef.id
 			
 			setBookingList([...bookingList, data])
-			
-			// calendarApi.getEvents()
 			setNewBookingOpen(false)
 		} )
 	}
 
 	const submitBlocking = async () => {
-		createBlocking( bookingStaff.id, daySelect, blockStartTime, blockEndTime )
-			.then( () => setNewBookingOpen(false) )
+		const data = {
+			resourceId: bookingStaff.id,
+			daysOfWeek: daySelect,
+			startTime: blockStartTime,
+			endTime: blockEndTime,
+			display: 'background',
+			color: "black"
+		}
+
+		addDoc( collection( db, collectionType.offtime ), {
+			staff: doc ( db, collectionType.staff, bookingStaff.id ),
+			days: daySelect,
+			start: blockStartTime,
+			end: blockEndTime
+		}).then( docRef => {
+			data.id = docRef.id
+
+			setBlockingList([...blockingList, data])
+			setNewBookingOpen(false)
+		} )
 	}
 
 	return (
