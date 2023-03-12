@@ -37,7 +37,7 @@ const getDocsByMonths = async (db, collectionName, fieldDateName) => {
 	return querySnapShot.docs.map(doc => ({...doc.data(), id: doc.id}))
 }
 
-const updateDocument = async(db, collectionName, collectionId, data) => {
+const updateDocument = (db, collectionName, collectionId, data) => {
 	const docRef = doc(db, collectionName, collectionId);
 
 	data ??= {

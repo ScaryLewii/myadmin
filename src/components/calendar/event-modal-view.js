@@ -26,7 +26,7 @@ import { useState } from 'react';
 import { useBookingContext } from '@/context/booking';
 import { useStaffContext } from '@/context/staff';
 import { useServiceContext } from '@/context/service';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen }) => {
 //handleDateChange, handleLoyaltyPoint, deleteBooking
@@ -48,14 +48,6 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 	const handleCompleteClick = async () => {
 		await updateDocument( db, collectionType.booking, selectedBooking.event.id, {status: 1} )
 		selectedBooking.event.setExtendedProp("status", 1)
-
-		setBookingList(bookingList.map( b => {
-			if ( b.id === selectedBooking.event.id ) {
-				b.status = 1
-			}
-
-			return b
-		}))
 		setBookingOpen(false)
 	}
 
@@ -66,7 +58,48 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 	}
 
 	const updateBooking = async () => {
+		const startHour = selectedTime.split(":")[0]
+		const startMinute = selectedTime.split(":")[1]
+		const startTime = new Date(new Date(dayjs(selectedDate).format('DD-MM-YYYY')).setHours(startHour, startMinute, 0, 0)).toISOString()
+		const endTime = dayjs(startTime).add(parseFloat(serviceList.find(s => s.id === selectedService.id).duration), "minute").toISOString()
 
+		const data = {
+			resourceId: selectedStaff.id,
+			service: serviceList.find(s => s.id === selectedService.id),
+			staff: staffList.find(s => s.id === selectedStaff.id),
+			start: startTime,
+			end: endTime
+		}
+
+		await updateDocument( db, collectionType.booking, selectedBooking.event.id, {
+			staff: doc(db, collectionType.staff, selectedStaff.id),
+			service: doc(db, collectionType.service, selectedService.id),
+			bookingTime: new Date(new Date(dayjs(selectedDate).format('DD-MM-YYYY')).setHours(startHour, startMinute, 0, 0)),
+		})
+
+		const newBookingList = bookingList.map(b => {
+			if (b.id === 2) {
+				return {
+					...b, 
+					resourceId: data.resourceId,
+					staff: data.staff,
+					start: data.start,
+					end: data.end
+				}
+			}
+		
+			return b;
+		})
+
+		setBookingList(newBookingList)
+
+		selectedBooking.event.setResources( [calendarApi.getResourceById( selectedStaff.id )] )
+		selectedBooking.event.setStart( startTime )
+		selectedBooking.event.setEnd( endTime )
+		selectedBooking.event.setExtendedProp("service", selectedService)
+		selectedBooking.event.setExtendedProp("staff", selectedStaff)
+
+		setBookingOpen(false)
 	}
 
 	const disabled = selectedBooking.event.extendedProps.status === 1 ? true : false
@@ -129,8 +162,9 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 							openTo="day"
 							value={ selectedDate }
 							disabled={disabled}
-							onChange={ newDate => setSelectedDate(newDate) }
-							renderInput={ params => <TextField {...params} label="Date - mm/dd/yy" /> }
+							onChange={ newDate => setSelectedDate(dayjs(newDate).format('DD-MM-YYYY')) }
+							inputFormat="DD/MM/YYYY"
+							renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
 						/>
 					</LocalizationProvider>
 

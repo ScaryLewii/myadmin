@@ -52,6 +52,7 @@ export default function Home() {
 	useEffect(() => {
 		const updateEvents = () => {
 			setEvents([...bookingList, ...blockingList])
+			calendarRef.current.getApi().getEvents()
 		}
 
 		updateEvents()
@@ -59,9 +60,7 @@ export default function Home() {
 
 	const handleCalendarDateChange = date => {
 		setSelectedDate( date )
-
-		const calendarApi = calendarRef.current.getApi()
-		calendarApi.gotoDate( new Date( date ) )
+		calendarRef.current.getApi().gotoDate( new Date( date ) )
 	}
 
 	return (

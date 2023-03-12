@@ -95,7 +95,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 			
 			setBookingList([...bookingList, data])
 			
-			calendarApi.getEvents()
+			// calendarApi.getEvents()
 			setNewBookingOpen(false)
 		} )
 	}
@@ -175,8 +175,9 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 								displayStaticWrapperAs="desktop"
 								openTo="day"
 								value={ bookingDate }
-								onChange={ newDate => setBookingDate(newDate) }
-								renderInput={ params => <TextField {...params} label="Date - mm/dd/yy" /> }
+								onChange={ newDate => setBookingDate(dayjs(newDate).format('DD-MM-YYYY')) }
+								inputFormat="DD/MM/YYYY"
+								renderInput={ params => <TextField {...params} label="Date - dd/mm/yyyy" /> }
 							/>
 						</LocalizationProvider>
 
@@ -226,9 +227,10 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 								displayStaticWrapperAs="desktop"
 								openTo="day"
 								value={ blockingDate }
-								onChange={ newDate => setBlockingDate(newDate) }
+								onChange={ newDate => setBlockingDate(dayjs(newDate).format('DD-MM-YYYY')) }
+								inputFormat="DD/MM/YYYY"
 								disabled={ daySelect.length !== 0 }
-								renderInput={ params => <TextField {...params} label="Date - mm/dd/yy" /> }
+								renderInput={ params => <TextField {...params} label="Date - dd/mm/yyyy" /> }
 							/>
 						</LocalizationProvider>
 					</div>
