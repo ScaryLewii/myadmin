@@ -60,11 +60,12 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 	}
 
 	const handleDaySelect = e => {
-		if (e.target.checked) {
-			setDaySelect([...new Set([...daySelect, parseInt(e.target.value)])])
+		if (!daySelect.includes(parseInt(e.target.value))) {
+			setDaySelect([...daySelect, parseInt(e.target.value)])
 		} else {
-			setDaySelect( daySelect.filter( d => d !== e.target.value ) )
+			setDaySelect( daySelect.filter( d => d !== parseInt(e.target.value) ) )
 		}
+		console.log(daySelect)
 	}
 
 	const submitBooking = () => {

@@ -29,7 +29,7 @@ import { useServiceContext } from '@/context/service';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen }) => {
-//handleDateChange, handleLoyaltyPoint, deleteBooking
+// handleLoyaltyPoint,
 	const {bookingList, setBookingList} = useBookingContext()
 	const {staffList, setStaffList} = useStaffContext()
 	const {serviceList, setServiceList} = useServiceContext()
@@ -107,8 +107,9 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 	return (
 		<Dialog open={bookingOpen} onClose={handleClose} className="text-sm">
 			<Box>
-				<h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-primary">
-					{selectedBooking.event.title}
+				<h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-primary flex justify-between">
+					<span>{selectedBooking.event.title}</span>
+					<span>Points: {selectedBooking.event.extendedProps.client.loyalty_point}</span>
 				</h2>
 
 				<div className="flex justify-between mb-4 px-2 gap-10 border-l-4 border-primary">
@@ -188,7 +189,7 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 				</div>
 
 				<div className="flex justify-between items-center gap-10 mt-8 px-2 border-l-4 border-primary">
-					<label className="text-base w-1/2">Loyalty Points:</label>
+					<label className="text-base w-1/2">Points:</label>
 					<div className="w-1/2 flex justify-between">
 						<TextField 
 							sx={{ width: '7ch' }} variant="standard" disabled

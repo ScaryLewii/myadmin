@@ -9,7 +9,7 @@ const CheckboxGroup = ({ group, checkedState, handleChange }) => {
 		<FormGroup className="grid grid-cols-4 gap-x-4">
 			{
 				group.map( item => 
-					<FormControlLabel key={uuidv4()} control={<Checkbox value={item.value} checked={checkedState.includes(item.value.toString())} onChange={handleChange} />} label={item.label} />
+					<FormControlLabel key={uuidv4()} control={<Checkbox value={item.value} checked={checkedState.includes(parseInt(item.value))} onChange={handleChange} />} label={item.label} />
 				)
 			}
 		</FormGroup>
