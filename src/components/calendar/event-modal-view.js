@@ -211,8 +211,8 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 				</div>
 
 				<div className="flex justify-between mt-8 bg-slate-800">
-					<div className="px-1 py-1 bg-gray-700 hover:bg-gray-800">
-						<IconButton onClick={deleteBooking} className="text-white w-full">
+					<div className="px-1 py-1 bg-gray-700">
+						<IconButton onClick={deleteBooking} className="text-white w-full hover:bg-gray-800">
 							<DeleteIcon />
 						</IconButton>
 					</div>
@@ -226,13 +226,17 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 					
 					{
 						!disabled &&
-						<Button variant="outline" onClick={handleCompleteClick} className="w-full text-white bg-primary rounded-none hover:bg-primary-hover">
+						<Button variant="outline" onClick={handleCompleteClick} className="w-full text-white bg-primary rounded-none hover:bg-primary-hover"
+							disabled={selectedService == null || selectedStaff == null} 
+						>
 							Complete
 						</Button>
 					}
 
-					<div className="px-1 py-1 bg-green-500 hover:bg-green-600">
-						<IconButton onClick={updateBooking} className="text-white w-full">
+					<div className="px-1 py-1 bg-green-500">
+						<IconButton onClick={updateBooking} className="text-white w-full hover:bg-green-600" 
+							disabled={selectedService == null || selectedStaff == null} 
+						>
 							<BookmarksIcon />
 						</IconButton>
 					</div>

@@ -32,7 +32,6 @@ import collectionType from '@/firebase/types';
 const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBookingOpen }) => {
 	let selectedHour = dayjs(selectedSlot.date).format('HH:00')
 	let selectedDate = dayjs(selectedSlot.date).format('MM-DD-YYYY')
-	const calendarApi = calendar.current.getApi()
 
 	const {bookingList, setBookingList} = useBookingContext()
 	const {staffList, setStaffList} = useStaffContext()
@@ -65,7 +64,6 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 		} else {
 			setDaySelect( daySelect.filter( d => d !== parseInt(e.target.value) ) )
 		}
-		console.log(daySelect)
 	}
 
 	const submitBooking = () => {
@@ -201,7 +199,9 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 					</div>
 
 					<div className="flex justify-between mt-8 bg-slate-900">
-						<Button variant="outline" onClick={submitBooking} className="text-white bg-primary rounded-none hover:bg-primary-hover w-full p-3">
+						<Button variant="outline"
+							disabled={bookingService == null || bookingClient == null || bookingStaff == null} 
+							onClick={submitBooking} className="text-white bg-primary rounded-none hover:bg-primary-hover w-full p-3">
 							Book
 						</Button>
 					</div>
@@ -277,7 +277,9 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 					</div>
 
 					<div className="flex justify-between mt-8 bg-slate-900">
-						<Button variant="outline" onClick={submitBlocking} className="text-white bg-primary rounded-none hover:bg-primary-hover w-full p-3">
+						<Button variant="outline" onClick={submitBlocking} 
+						disabled={bookingStaff == null} 
+						className="text-white bg-primary rounded-none hover:bg-primary-hover w-full p-3">
 							Block
 						</Button>
 					</div>
