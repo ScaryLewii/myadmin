@@ -50,6 +50,8 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 	const [blockStartTime, setBlockStartTime] = useState(selectedHour)
 	const [blockEndTime, setBlockEndTime] = useState(selectedHour)
 
+	const calendarApi = calendar.current.getApi()
+
 	const handleClose = () => {
 		setNewBookingOpen(false)
 	}
@@ -87,12 +89,13 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 			client: doc( db, collectionType.client, bookingClient ),
 			staff: doc( db, collectionType.staff, bookingStaff.id ),
 			service: doc( db, collectionType.service, bookingService ),
-			bookingTime: new Date(new Date(dayjs(bookingDate).format('MM-DD-YYYY')).setHours(startHour, startMinute, 0, 0)),
+			bookingTime: new Date(new Date(bookingDate).setHours(startHour, startMinute, 0, 0)),
 			status: 0
 		} ).then( docRef => {
 			data.id = docRef.id
 			
 			setBookingList([...bookingList, data])
+			calendarApi.addEvent( data, [ calendarApi.getResourceById( bookingStaff.id ) ] )
 			setNewBookingOpen(false)
 		} )
 	}
@@ -116,6 +119,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 			data.id = docRef.id
 
 			setBlockingList([...blockingList, data])
+			calendarApi.addEvent( data, [ calendarApi.getResourceById( bookingStaff.id ) ] )
 			setNewBookingOpen(false)
 		} )
 	}
@@ -187,12 +191,10 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 					<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
 						<LocalizationProvider dateAdapter={AdapterDayjs}>
 							<DatePicker className=" border-r w-1/2"
-								displayStaticWrapperAs="desktop"
-								openTo="day"
 								value={ bookingDate }
-								onChange={ newDate => setBookingDate(dayjs(newDate).format('DD-MM-YYYY')) }
-								inputFormat="DD/MM/YYYY"
-								renderInput={ params => <TextField {...params} label="Date - dd/mm/yyyy" /> }
+								onChange={ newDate => setBookingDate(dayjs(newDate).format('MM-DD-YYYY')) }
+								inputFormat="MM/DD/YYYY"
+								renderInput={ params => <TextField {...params} label="Date - mm/dd/yyyy" /> }
 							/>
 						</LocalizationProvider>
 
@@ -244,10 +246,10 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 								displayStaticWrapperAs="desktop"
 								openTo="day"
 								value={ blockingDate }
-								onChange={ newDate => setBlockingDate(dayjs(newDate).format('DD-MM-YYYY')) }
-								inputFormat="DD/MM/YYYY"
+								onChange={ newDate => setBlockingDate(dayjs(newDate).format('MM-DD-YYYY')) }
+								inputFormat="MM/DD/YYYY"
 								disabled={ daySelect.length !== 0 }
-								renderInput={ params => <TextField {...params} label="Date - dd/mm/yyyy" /> }
+								renderInput={ params => <TextField {...params} label="Date - mm/dd/yyyy" /> }
 							/>
 						</LocalizationProvider>
 					</div>

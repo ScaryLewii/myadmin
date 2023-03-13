@@ -36,7 +36,7 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 
 	const [selectedStaff, setSelectedStaff] = useState(staffList.find(s => s.id === selectedBooking.event.extendedProps.staff?.id))
 	const [selectedService, setSelectedService] = useState(serviceList.find(s => s.id === selectedBooking.event.extendedProps.service?.id))
-	const [selectedDate, setSelectedDate] = useState(dayjs(selectedBooking.event.start).format('DD-MM-YYYY'))
+	const [selectedDate, setSelectedDate] = useState(dayjs(selectedBooking.event.start).format('MM-DD-YYYY'))
 	const [selectedTime, setSelectedTime] = useState(dayjs(selectedBooking.event.start).format('HH:mm'))
 
 	const calendarApi = calendar.current.getApi()
@@ -60,7 +60,7 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 	const updateBooking = async () => {
 		const startHour = selectedTime.split(":")[0]
 		const startMinute = selectedTime.split(":")[1]
-		const startTime = new Date(new Date(dayjs(selectedDate).format('DD-MM-YYYY')).setHours(startHour, startMinute, 0, 0)).toISOString()
+		const startTime = new Date(new Date(selectedDate).setHours(startHour, startMinute, 0, 0)).toISOString()
 		const endTime = dayjs(startTime).add(parseFloat(serviceList.find(s => s.id === selectedService.id).duration), "minute").toISOString()
 
 		const data = {
@@ -74,7 +74,7 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 		await updateDocument( db, collectionType.booking, selectedBooking.event.id, {
 			staff: doc(db, collectionType.staff, selectedStaff.id),
 			service: doc(db, collectionType.service, selectedService.id),
-			bookingTime: new Date(new Date(dayjs(selectedDate).format('DD-MM-YYYY')).setHours(startHour, startMinute, 0, 0)),
+			bookingTime: new Date(new Date(selectedDate).setHours(startHour, startMinute, 0, 0)),
 		})
 
 		const newBookingList = bookingList.map(b => {
@@ -167,9 +167,9 @@ const EventModalView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen
 							openTo="day"
 							value={ selectedDate }
 							disabled={disabled}
-							onChange={ newDate => setSelectedDate(dayjs(newDate).format('DD-MM-YYYY')) }
-							inputFormat="DD/MM/YYYY"
-							renderInput={ params => <TextField {...params} label="Date - dd/mm/yy" /> }
+							onChange={ newDate => setSelectedDate(dayjs(newDate).format('MM/DD/YYYY')) }
+							inputFormat="MM/DD/YYYY"
+							renderInput={ params => <TextField {...params} label="Date - mm/dd/yy" /> }
 						/>
 					</LocalizationProvider>
 

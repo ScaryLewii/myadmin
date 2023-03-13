@@ -52,7 +52,7 @@ export default function Home() {
 	useEffect(() => {
 		const updateEvents = () => {
 			setEvents([...bookingList, ...blockingList])
-			calendarRef.current.getApi().getEvents()
+			// calendarRef.current.getApi().getEvents()
 		}
 
 		updateEvents()
