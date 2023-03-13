@@ -112,6 +112,7 @@ export default function Home() {
 					}}
 					events={ events }
 					eventContent={ EventView }
+					eventMinWidth={40}
 					eventBackgroundColor="rgba(0,0,0,0)"
 					eventBorderColor="rgba(0,0,0,0)"
 					eventTextColor="#000"

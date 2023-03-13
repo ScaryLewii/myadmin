@@ -16,12 +16,10 @@ const BlockingContextProvider = ({ children }) => {
                     id: offtime.id,
                     resourceId: offtime.staff.id,
                     staff: offtime.staff,
-                    display: 'background',
-                    color: "black"
                 }
 
-                if (daySelect.length > 0) {
-                    result.daysOfWeek = daySelect
+                if (offtime.daysOfWeek?.length > 0) {
+                    result.daysOfWeek = offtime.daysOfWeek
                     result.start = offtime.start
                     result.end = offtime.end
                 } else {
