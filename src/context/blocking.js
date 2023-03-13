@@ -12,15 +12,24 @@ const BlockingContextProvider = ({ children }) => {
         const fetchBlocking = async () => {
             const data = []
             await getCollection( db, collectionType.offtime, "staff" ).then( res => res.forEach( offtime => {
-                data.push({
+                const result = {
                     id: offtime.id,
                     resourceId: offtime.staff.id,
-                    daysOfWeek: offtime.days,
-                    startTime: offtime.start + ":00",
-                    endTime: offtime.end + ":00",
+                    staff: offtime.staff,
                     display: 'background',
                     color: "black"
-                })
+                }
+
+                if (daySelect.length > 0) {
+                    result.daysOfWeek = daySelect
+                    result.start = offtime.start
+                    result.end = offtime.end
+                } else {
+                    result.start = new Date( offtime.start.seconds * 1000 ).toISOString()
+                    result.end = new Date( offtime.end.seconds * 1000 ).toISOString()
+                }
+
+                data.push(result)
             } ))
             
             setBlockingList(data)

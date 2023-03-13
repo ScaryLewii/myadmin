@@ -23,10 +23,11 @@ import { useClientContext } from '@/context/client';
 import { useBookingContext } from '@/context/booking';
 import { useStaffContext } from '@/context/staff';
 import { useServiceContext } from '@/context/service';
+import { useBlockingContext } from '@/context/blocking';
+
 import { addDoc, collection, doc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import collectionType from '@/firebase/types';
-import { useBlockingContext } from '@/context/blocking';
 
 const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBookingOpen }) => {
 	let selectedHour = dayjs(selectedSlot.date).format('HH:00')
@@ -103,23 +104,25 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 	const submitBlocking = async () => {
 		const data = {
 			resourceId: bookingStaff.id,
-			daysOfWeek: daySelect,
-			startTime: blockStartTime,
-			endTime: blockEndTime,
+			staff: doc ( db, collectionType.staff, bookingStaff.id ),
 			display: 'background',
 			color: "black"
 		}
 
-		addDoc( collection( db, collectionType.offtime ), {
-			staff: doc ( db, collectionType.staff, bookingStaff.id ),
-			days: daySelect,
-			start: blockStartTime,
-			end: blockEndTime
-		}).then( docRef => {
+		if (daySelect.length > 0) {
+			data.daysOfWeek = daySelect
+			data.start = blockStartTime
+			data.end = blockEndTime
+		} else {
+			data.start = new Date(new Date(bookingDate).setHours(blockStartTime.split(":")[0], blockStartTime.split(":")[1], 0, 0))
+			data.end = new Date(new Date(bookingDate).setHours(blockEndTime.split(":")[0], blockEndTime.split(":")[1], 0, 0))
+		}
+
+		addDoc( collection( db, collectionType.offtime ), data).then( docRef => {
 			data.id = docRef.id
 
 			setBlockingList([...blockingList, data])
-			calendarApi.addEvent( data, [ calendarApi.getResourceById( bookingStaff.id ) ] )
+			calendarApi.addEvent( data, [ calendarApi.getResourceById( data.resourceId ) ] )
 			setNewBookingOpen(false)
 		} )
 	}
