@@ -19,7 +19,6 @@ import { useState } from 'react';
 
 import CheckboxGroup from '../layout/checkbox-group';
 
-import { useStaffContext } from '@/context/staff';
 import { useBlockingContext } from '@/context/blocking';
 
 import { addDoc, collection, doc } from 'firebase/firestore';

@@ -45,6 +45,10 @@ export default function Home() {
 	}
 
 	const handleDateClick = slotInfo => {
+		if (slotInfo.jsEvent.target.classList.contains('js-block-event')) {
+			return
+		}
+
 		setNewBookingOpen(true)
 		setSelectedSlot(slotInfo)
 	}
@@ -95,7 +99,6 @@ export default function Home() {
 					nowIndicator
 					resources={ staffList }
 					dayMaxEventRows
-					editable
 					droppable
 					ref={calendarRef}
 					slotLabelFormat={{
@@ -118,6 +121,7 @@ export default function Home() {
 					eventTextColor="#000"
 					eventClick={ handleEventClick }
 					dateClick={ handleDateClick }
+					selectMinDistance={1}
 				/>
 			</div>
 

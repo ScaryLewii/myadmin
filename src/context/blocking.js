@@ -16,6 +16,7 @@ const BlockingContextProvider = ({ children }) => {
                     id: offtime.id,
                     resourceId: offtime.staff.id,
                     staff: offtime.staff,
+                    display: 'background'
                 }
 
                 if (offtime.daysOfWeek?.length > 0) {
