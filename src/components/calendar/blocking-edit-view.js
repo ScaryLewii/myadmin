@@ -10,7 +10,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 
-import { Button, Box, TextField, Autocomplete, IconButton } from '@mui/material';
+import { Button, Box, TextField, Autocomplete, IconButton, FormControlLabel, Checkbox } from '@mui/material';
 import { TimeSlot, DaySlot } from '@/helpers/time-slot';
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -24,17 +24,20 @@ import { useBlockingContext } from '@/context/blocking';
 import { addDoc, collection, doc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import collectionType from '@/firebase/types';
+import { updateDocument } from '@/firebase/utils';
 
 const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen }) => {
 	const {blockingList, setBlockingList} = useBlockingContext()
 	
 	const selectedTime = blockingList.find(b => b.id === selectedSlot.event.id).start
 	const selectedTimeEnd = blockingList.find(b => b.id === selectedSlot.event.id).end
-	const selectedDate = dayjs(new Date(selectedTime)).format('MM-DD-YYYY')
-	const selectedHourStart = dayjs(new Date(selectedTime)).format('HH:mm')
-	const selectedHourEnd = dayjs(new Date(selectedTimeEnd)).format('HH:mm')
+	const selectedDay = blockingList.find(b => b.id === selectedSlot.event.id).daysOfWeek ??= []
+	const selectedDate = dayjs(new Date(selectedTime)).format('MM-DD-YYYY') == "Invalid Date" ? dayjs(new Date()).format('MM-DD-YYYY') : dayjs(new Date(selectedTime)).format('MM-DD-YYYY')
+	const selectedHourStart = dayjs(new Date(selectedTime)).format('MM-DD-YYYY') == "Invalid Date" ? selectedTime : dayjs(new Date(selectedTime)).format('HH:mm')
+	const selectedHourEnd = dayjs(new Date(selectedTime)).format('MM-DD-YYYY') == "Invalid Date" ? selectedTimeEnd : dayjs(new Date(selectedTimeEnd)).format('HH:mm')
 
-	const [daySelect, setDaySelect] = useState([])
+	const [daySelect, setDaySelect] = useState(selectedDay)
+	const [allDayCheck, setAllDayCheck] = useState(selectedSlot.event.allDay)
 	const [blockingDate, setBlockingDate] = useState(selectedDate)
 	const [blockStartTime, setBlockStartTime] = useState(selectedHourStart)
 	const [blockEndTime, setBlockEndTime] = useState(selectedHourEnd)
@@ -44,7 +47,7 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 	const handleClose = () => {
 		setBookingOpen(false)
 	}
-
+console.log(selectedSlot)
 	const handleDaySelect = e => {
 		if (!daySelect.includes(parseInt(e.target.value))) {
 			setDaySelect([...daySelect, parseInt(e.target.value)])
@@ -57,9 +60,10 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 		const data = {
 			resourceId: selectedSlot.event.resourceId,
 			staff: doc ( db, collectionType.staff, selectedSlot.event.resourceId ),
+			allDay: allDayCheck
 		}
 
-		if (daySelect.length > 0) {
+		if (daySelect?.length > 0) {
 			data.daysOfWeek = daySelect
 			data.start = blockStartTime
 			data.end = blockEndTime
@@ -68,13 +72,33 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 			data.end = new Date(new Date(blockingDate).setHours(blockEndTime.split(":")[0], blockEndTime.split(":")[1], 0, 0))
 		}
 
-		addDoc( collection( db, collectionType.offtime ), data).then( docRef => {
-			data.id = docRef.id
+		await updateDocument( db, collectionType.offtime, selectedSlot.event.id, data)
 
-			setBlockingList([...blockingList, data])
-			calendarApi.addEvent( data, [ calendarApi.getResourceById( data.resourceId ) ] )
-			setBookingOpen(false)
-		} )
+		const newBlockingList = blockingList.map(b => {
+			if (b.id === 2) {
+				return {
+					...b,
+					daysOfWeek: data.daysOfWeek,
+					resourceId: data.resourceId,
+					staff: data.staff,
+					start: data.start,
+					end: data.end,
+					allDay: data.allDay
+				}
+			}
+		
+			return b;
+		})
+
+		setBlockingList(newBlockingList)
+
+		selectedSlot.event.setResources( [ calendarApi.getResourceById( data.resourceId ) ] )
+		selectedSlot.event.setStart( data.start )
+		selectedSlot.event.setEnd( data.end )
+		selectedSlot.event.setExtendedProp("staff", data.staff)
+		selectedSlot.event.setAllDay( data.allDay )
+
+		setBookingOpen(false)
 	}
 
 	return (
@@ -90,7 +114,7 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 							value={ blockingDate }
 							onChange={ newDate => setBlockingDate(dayjs(newDate).format('MM-DD-YYYY')) }
 							inputFormat="MM/DD/YYYY"
-							disabled={ daySelect.length !== 0 }
+							disabled={ daySelect?.length !== 0 }
 							renderInput={ params => <TextField {...params} label="Date - mm/dd/yyyy" /> }
 						/>
 					</LocalizationProvider>
@@ -98,6 +122,10 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 
 				<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
 					<CheckboxGroup group={DaySlot} checkedState={daySelect} handleChange={handleDaySelect} />
+				</div>
+
+				<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
+					<FormControlLabel control={<Checkbox value={allDayCheck} checked={allDayCheck} onChange={() => setAllDayCheck(!allDayCheck)} />} label="All day" />
 				</div>
 
 				<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
@@ -109,6 +137,7 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 								id="time-block-start"
 								label="From"
 								value={ blockStartTime }
+								disabled={ allDayCheck }
 								onChange={ e => setBlockStartTime(e.target.value) }
 							>
 								{
@@ -126,6 +155,7 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 								id="time-block-end"
 								label="To"
 								value={ blockEndTime }
+								disabled={ allDayCheck }
 								onChange={ e => setBlockEndTime(e.target.value) }
 							>
 								{

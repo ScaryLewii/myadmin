@@ -10,7 +10,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 
-import { Button, Box, TextField, Autocomplete, Tabs, Tab } from '@mui/material';
+import { Button, Box, TextField, Autocomplete, Tabs, Tab, Checkbox, FormControlLabel } from '@mui/material';
 import { TimeSlot, DaySlot } from '@/helpers/time-slot';
 
 import { uuidv4 } from '@firebase/util';
@@ -50,6 +50,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 	const [blockingDate, setBlockingDate] = useState(selectedDate)
 	const [blockStartTime, setBlockStartTime] = useState(selectedHour)
 	const [blockEndTime, setBlockEndTime] = useState(selectedHour)
+	const [allDayCheck, setAllDayCheck] = useState(false)
 
 	const calendarApi = calendar.current.getApi()
 
@@ -105,8 +106,11 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 		const data = {
 			resourceId: bookingStaff.id,
 			staff: doc ( db, collectionType.staff, bookingStaff.id ),
-			display: 'background',
-			color: "black"
+			display: 'background'
+		}
+
+		if (allDayCheck) {
+			data.allDay = true
 		}
 
 		if (daySelect.length > 0) {
@@ -262,6 +266,10 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 					</div>
 
 					<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
+						<FormControlLabel control={<Checkbox value={allDayCheck} checked={allDayCheck} onChange={() => setAllDayCheck(!allDayCheck)} />} label="All day" />
+					</div>
+
+					<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-primary">
 						<div className="w-1/2">
 							<FormControl fullWidth>
 								<InputLabel id="time-select-label">From</InputLabel>
@@ -270,6 +278,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 									id="time-block-start"
 									label="From"
 									value={ blockStartTime }
+									disabled={ allDayCheck }
 									onChange={ e => setBlockStartTime(e.target.value) }
 								>
 									{
@@ -287,6 +296,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 									id="time-block-end"
 									label="To"
 									value={ blockEndTime }
+									disabled={ allDayCheck }
 									onChange={ e => setBlockEndTime(e.target.value) }
 								>
 									{

@@ -28,6 +28,10 @@ const BlockingContextProvider = ({ children }) => {
                     result.end = new Date( offtime.end.seconds * 1000 ).toISOString()
                 }
 
+                if (offtime.allDay) {
+                    result.allDay = offtime.allDay
+                }
+
                 data.push(result)
             } ))
             
