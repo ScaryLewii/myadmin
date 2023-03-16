@@ -15,26 +15,30 @@ import { TimeSlot, DaySlot } from '@/helpers/time-slot';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { uuidv4 } from '@firebase/util';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import CheckboxGroup from '../layout/checkbox-group';
 
 import { useBlockingContext } from '@/context/blocking';
 
-import { addDoc, collection, doc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import collectionType from '@/firebase/types';
 import { updateDocument } from '@/firebase/utils';
+import { useBookingContext } from '@/context/booking';
 
 const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen }) => {
 	const {blockingList, setBlockingList} = useBlockingContext()
+	const {bookingList} = useBookingContext()
 	
 	const selectedTime = blockingList.find(b => b.id === selectedSlot.event.id).start
 	const selectedTimeEnd = blockingList.find(b => b.id === selectedSlot.event.id).end
 	const selectedDay = blockingList.find(b => b.id === selectedSlot.event.id).daysOfWeek ??= []
-	const selectedDate = dayjs(new Date(selectedTime)).format('MM-DD-YYYY') == "Invalid Date" ? dayjs(new Date()).format('MM-DD-YYYY') : dayjs(new Date(selectedTime)).format('MM-DD-YYYY')
-	const selectedHourStart = dayjs(new Date(selectedTime)).format('MM-DD-YYYY') == "Invalid Date" ? selectedTime : dayjs(new Date(selectedTime)).format('HH:mm')
-	const selectedHourEnd = dayjs(new Date(selectedTime)).format('MM-DD-YYYY') == "Invalid Date" ? selectedTimeEnd : dayjs(new Date(selectedTimeEnd)).format('HH:mm')
+
+	let selectedTimeFormat = dayjs(new Date(selectedTime)).format('MM-DD-YYYY')
+	const selectedDate = selectedTimeFormat == "Invalid Date" ? dayjs(new Date()).format('MM-DD-YYYY') : selectedTimeFormat
+	const selectedHourStart = selectedTimeFormat == "Invalid Date" ? selectedTime : dayjs(new Date(selectedTime)).format('HH:mm')
+	const selectedHourEnd = selectedTimeFormat == "Invalid Date" ? selectedTimeEnd : dayjs(new Date(selectedTimeEnd)).format('HH:mm')
 
 	const [daySelect, setDaySelect] = useState(selectedDay)
 	const [allDayCheck, setAllDayCheck] = useState(selectedSlot.event.allDay)
@@ -42,12 +46,32 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 	const [blockStartTime, setBlockStartTime] = useState(selectedHourStart)
 	const [blockEndTime, setBlockEndTime] = useState(selectedHourEnd)
 
+	const [invalid, setInvalid] = useState(false)
+
+	useEffect(() => {
+		const checkValid = () => {
+			const events = [...bookingList, ...blockingList].filter(e => e.id !== selectedSlot.event.id)
+			events.forEach(e => {
+				if (e.resourceId === selectedSlot.event.resourceId && e.id !== selectedSlot.event.id) {
+					console.log(e)
+				console.log(blockStartTime)
+				console.log(blockEndTime)
+				console.log(daySelect)
+				console.log(allDayCheck)
+				}
+			})
+		}
+
+		checkValid()
+
+	}, [daySelect, blockStartTime, blockEndTime, allDayCheck])
+
 	const calendarApi = calendar.current.getApi()
 
 	const handleClose = () => {
 		setBookingOpen(false)
 	}
-console.log(selectedSlot)
+
 	const handleDaySelect = e => {
 		if (!daySelect.includes(parseInt(e.target.value))) {
 			setDaySelect([...daySelect, parseInt(e.target.value)])
@@ -56,10 +80,17 @@ console.log(selectedSlot)
 		}
 	}
 
+	const deleteBlocking = async () => {
+		await deleteDoc( doc( db, collectionType.offtime, selectedSlot.event.id || selectedSlot.event.publicId) )
+		selectedSlot.event.remove()
+		setBlockingList(blockingList.filter(b => b.id !== selectedSlot.event.id))
+		setBookingOpen(false)
+	}
+
 	const submitBlocking = async () => {
 		const data = {
-			resourceId: selectedSlot.event.resourceId,
-			staff: doc ( db, collectionType.staff, selectedSlot.event.resourceId ),
+			resourceId: selectedSlot.event.resourceId || selectedSlot.event.getResources()[0].id,
+			staff: doc ( db, collectionType.staff, selectedSlot.event.resourceId || selectedSlot.event.getResources()[0].id),
 			allDay: allDayCheck
 		}
 
@@ -75,7 +106,7 @@ console.log(selectedSlot)
 		await updateDocument( db, collectionType.offtime, selectedSlot.event.id, data)
 
 		const newBlockingList = blockingList.map(b => {
-			if (b.id === 2) {
+			if (b.id === selectedSlot.event.id) {
 				return {
 					...b,
 					daysOfWeek: data.daysOfWeek,
@@ -168,7 +199,7 @@ console.log(selectedSlot)
 
 				<div className="flex justify-between mt-8 bg-slate-900">
 					<div className="px-1 py-1 bg-gray-700">
-						<IconButton onClick={() => {}} className="text-white w-full hover:bg-gray-800">
+						<IconButton onClick={deleteBlocking} className="text-white w-full hover:bg-gray-800">
 							<DeleteIcon />
 						</IconButton>
 					</div>

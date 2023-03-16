@@ -14,7 +14,7 @@ import { Button, Box, TextField, Autocomplete, Tabs, Tab, Checkbox, FormControlL
 import { TimeSlot, DaySlot } from '@/helpers/time-slot';
 
 import { uuidv4 } from '@firebase/util';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import TabPanel from '../layout/tab';
 
 import CheckboxGroup from '../layout/checkbox-group';
@@ -52,6 +52,54 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 	const [blockEndTime, setBlockEndTime] = useState(selectedHour)
 	const [allDayCheck, setAllDayCheck] = useState(false)
 
+	const [invalid, setInvalid] = useState(false)
+
+	useEffect(() => {
+		const checkValid = () => {
+			setInvalid(false)
+
+			const events = [...bookingList, ...blockingList]
+			const startTime = new Date(new Date(bookingDate).setHours(bookingTime.split(":")[0], bookingTime.split(":")[1], 0, 0)).toISOString()
+			if ( !events || !startTime ) {
+				return
+			}
+
+			events.forEach(e => {
+				if (e.resourceId !== bookingStaff.id) {
+					return
+				}
+
+				if (e.daysOfWeek && e.daysOfWeek.includes(new Date(bookingDate).getDay())) {
+					if (e.allDay) {
+						setInvalid(true)
+						return
+					}
+					
+					console.log(e.start)
+					return
+				}
+
+				if (e.allDay) {
+					e.start < startTime && setInvalid(true)
+					return
+				}
+
+				console.log(e.start)
+				// console.log(new Date(e.start).toISOString())
+				if (
+					startTime >= e.start && startTime < e.end ||
+					startTime >= new Date(e.start).toISOString() && startTime < new Date(e.end).toISOString()
+				) {
+					setInvalid(true)
+					return
+				}
+			})
+		}
+
+		checkValid()
+
+	}, [bookingDate, bookingStaff, bookingTime, bookingList, blockingList])
+
 	const calendarApi = calendar.current.getApi()
 
 	const handleClose = () => {
@@ -70,7 +118,7 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 		}
 	}
 
-	const submitBooking = () => {
+	const submitBooking = async () => {
 		const startHour = bookingTime.split(":")[0]
 		const startMinute = bookingTime.split(":")[1]
 		const startTime = new Date(new Date(bookingDate).setHours(startHour, startMinute, 0, 0)).toISOString()
@@ -78,16 +126,16 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 
 		const data = {
 			resourceId: bookingStaff.id,
-			status: 0,
 			title: clientList.find(c => c.id === bookingClient).title,
+			start: startTime,
+			end: endTime,
+			status: 0,
 			client: clientList.find(c => c.id === bookingClient),
 			service: serviceList.find(s => s.id === bookingService),
 			staff: staffList.find(s => s.id === bookingStaff.id),
-			start: startTime,
-			end: endTime
 		}
 
-		addDoc( collection( db, collectionType.booking ), {
+		await addDoc( collection( db, collectionType.booking ), {
 			client: doc( db, collectionType.client, bookingClient ),
 			staff: doc( db, collectionType.staff, bookingStaff.id ),
 			service: doc( db, collectionType.service, bookingService ),
@@ -95,11 +143,11 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 			status: 0
 		} ).then( docRef => {
 			data.id = docRef.id
-			
-			setBookingList([...bookingList, data])
-			calendarApi.addEvent( data, [ calendarApi.getResourceById( bookingStaff.id ) ] )
-			setNewBookingOpen(false)
 		} )
+
+		calendarApi.addEvent( data, [ calendarApi.getResourceById( bookingStaff.id ) ] )
+		setBookingList([...bookingList, data])
+		setNewBookingOpen(false)
 	}
 
 	const submitBlocking = async () => {
@@ -122,13 +170,13 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 			data.end = new Date(new Date(bookingDate).setHours(blockEndTime.split(":")[0], blockEndTime.split(":")[1], 0, 0))
 		}
 
-		addDoc( collection( db, collectionType.offtime ), data).then( docRef => {
+		await addDoc( collection( db, collectionType.offtime ), data).then( docRef => {
 			data.id = docRef.id
-
-			setBlockingList([...blockingList, data])
-			calendarApi.addEvent( data, [ calendarApi.getResourceById( data.resourceId ) ] )
-			setNewBookingOpen(false)
 		} )
+
+		calendarApi.addEvent( data, [ calendarApi.getResourceById( data.resourceId ) ] )
+		setBlockingList([...blockingList, data])
+		setNewBookingOpen(false)
 	}
 
 	return (
@@ -223,9 +271,16 @@ const NewEventModalView = ({ calendar, newBookingOpen, selectedSlot, setNewBooki
 						</div>
 					</div>
 
+					{
+						invalid &&
+						<div className="flex justify-between mt-8 px-2 gap-10 border-l-4 border-alert">
+							<p className="text-alert">Staff is busy at chosen time!</p>
+						</div>
+					}
+
 					<div className="flex justify-between mt-8 bg-slate-900">
 						<Button variant="outline"
-							disabled={bookingService == null || bookingClient == null || bookingStaff == null} 
+							disabled={bookingService == null || bookingClient == null || bookingStaff == null || invalid} 
 							onClick={submitBooking} className="text-white bg-primary rounded-none hover:bg-primary-hover w-full p-3">
 							Book
 						</Button>

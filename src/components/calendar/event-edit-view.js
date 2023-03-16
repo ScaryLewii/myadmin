@@ -48,12 +48,25 @@ const EventEditView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen 
 	const handleCompleteClick = async () => {
 		await updateDocument( db, collectionType.booking, selectedBooking.event.id, {status: 1} )
 		selectedBooking.event.setExtendedProp("status", 1)
+		const newBookingList = bookingList.map(b => {
+			if (b.id === selectedBooking.event.id) {
+				return {
+					...b, 
+					status: 1
+				}
+			}
+		
+			return b;
+		})
+
+		setBookingList(newBookingList)
 		setBookingOpen(false)
 	}
 
 	const deleteBooking = async () => {
 		await deleteDoc( doc( db, collectionType.booking, selectedBooking.event.id) )
 		selectedBooking.event.remove()
+		setBookingList(bookingList.filter(b => b.id !== selectedBooking.event.id))
 		setBookingOpen(false)
 	}
 
@@ -78,7 +91,7 @@ const EventEditView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen 
 		})
 
 		const newBookingList = bookingList.map(b => {
-			if (b.id === 2) {
+			if (b.id === selectedBooking.event.id) {
 				return {
 					...b, 
 					resourceId: data.resourceId,
@@ -109,7 +122,7 @@ const EventEditView = ({ calendar, bookingOpen, selectedBooking, setBookingOpen 
 			<Box>
 				<h2 className="px-4 py-4 mb-4 text-base text-white font-semibold bg-primary flex justify-between">
 					<span>{selectedBooking.event.title}</span>
-					<span>Points: {selectedBooking.event.extendedProps.client.loyalty_point}</span>
+					<span>Points: {selectedBooking.event.extendedProps.client.loyalty_point ??= 0}</span>
 				</h2>
 
 				<div className="flex justify-between mb-4 px-2 gap-10 border-l-4 border-primary">
