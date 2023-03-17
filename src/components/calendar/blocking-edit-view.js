@@ -109,7 +109,7 @@ const BlockingEditView = ({ calendar, bookingOpen, selectedSlot, setBookingOpen 
 			if (b.id === selectedSlot.event.id) {
 				return {
 					...b,
-					daysOfWeek: data.daysOfWeek,
+					daysOfWeek: data.daysOfWeek || [],
 					resourceId: data.resourceId,
 					staff: data.staff,
 					start: data.start,
